@@ -55,7 +55,9 @@ included.
 | CLAP | `CommonSenseEQ.clap` + `CommonSenseEQ.resources/` | REAPER, Bitwig, Qtractor, any CLAP host |
 
 The LV2 build carries the inline display. The CLAP build carries the REAPER
-embedded UI.
+embedded UI. The editor runs inside both hosts:
+
+![Common Sense EQ in REAPER](docs/reaper.png)
 
 ## Building
 
