@@ -105,6 +105,7 @@ private:
   void toggleDynamics(UiState& state, int band, const Setter& set);
   void cyclePreset(UiState& state, int direction, const Setter& set);
   void cycleAB(UiState& state, const Setter& set);
+  void cycleSlope(UiState& state, int band, int direction, const Setter& set);
 
   Drag drag_ = Drag::Idle;
   int dragBand_ = -1;

@@ -151,6 +151,12 @@ int main(int argc, char** argv) {
   click(display, 944, 27);           // open dynamics panel
   click(display, 812, 325);          // threshold row (selected band 3)
   drag(display, 444, 263, 520, 215); // drag the 270 Hz bell node
+
+  // Wheel on the low-cut icon changes its slope.
+  XTestFakeMotionEvent(display, -1, 90, 72, CurrentTime);
+  XTestFakeButtonEvent(display, Button4, True, CurrentTime);
+  XTestFakeButtonEvent(display, Button4, False, CurrentTime);
+  XFlush(display);
   for (int i = 0; i < 12; ++i) {
     idle->idle(handle);
     usleep(12000);
@@ -161,6 +167,12 @@ int main(int argc, char** argv) {
               g_lastPort, g_lastValue);
   if (writes < 4) {
     std::printf("FAIL: interaction did not write parameters\n");
+    return 1;
+  }
+  if (g_lastPort != cse::bandParam(0, cse::kSlotSlope) ||
+      std::fabs(g_lastValue - 30.0f) > 0.1f) {
+    std::printf("FAIL: wheel on the low cut did not change the slope (port %u, value %.1f)\n",
+                g_lastPort, g_lastValue);
     return 1;
   }
 

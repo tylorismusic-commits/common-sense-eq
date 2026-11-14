@@ -119,6 +119,30 @@ int main() {
     check(std::fabs(at1k) < 0.25, "low cut passes the top end");
   }
 
+  // Every cut slope option has the expected relative steepness.
+  {
+    double previous = 0.0;
+    bool monotonic = true;
+    for (int slope : {6, 12, 18, 24, 30}) {
+      cse::Strip strip;
+      cse::Params p = flatParams();
+      p.bands[0].on = true;
+      p.bands[0].freq = 100.0f;
+      p.bands[0].slope = slope;
+      const auto ir = impulseResponse(strip, p, 8192);
+      const double at25 = dftDb(ir, 25.0, 48000.0);
+      const double at1k = dftDb(ir, 1000.0, 48000.0);
+      std::printf("low cut %d dB/oct: 25 Hz %.1f dB, 1 kHz %.1f dB\n", slope,
+                  at25, at1k);
+      check(at1k > -0.5, "cut passes the top end at every slope");
+      if (slope > 6 && at25 > previous) {
+        monotonic = false;
+      }
+      previous = at25;
+    }
+    check(monotonic, "steeper cut slopes attenuate more");
+  }
+
   // Dynamics reduce the band gain on a loud tone and release on silence.
   {
     cse::Strip strip;

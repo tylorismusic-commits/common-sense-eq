@@ -172,11 +172,14 @@
 			lv2:name "Low Cut Slope" ;
 			pg:group <https://github.com/tylorismusic-commits/common-sense-eq#band1> ;
 			lv2:default 24 ;
-			lv2:minimum 12 ;
-			lv2:maximum 24 ;
+			lv2:minimum 6 ;
+			lv2:maximum 30 ;
 			lv2:portProperty lv2:integer , lv2:enumeration ;
-			lv2:scalePoint [ rdfs:label "12" ; rdf:value 12 ] ;
-			lv2:scalePoint [ rdfs:label "24" ; rdf:value 24 ] ;
+			lv2:scalePoint [ rdfs:label "6 dB/Oct" ; rdf:value 6 ] ;
+			lv2:scalePoint [ rdfs:label "12 dB/Oct" ; rdf:value 12 ] ;
+			lv2:scalePoint [ rdfs:label "18 dB/Oct" ; rdf:value 18 ] ;
+			lv2:scalePoint [ rdfs:label "24 dB/Oct" ; rdf:value 24 ] ;
+			lv2:scalePoint [ rdfs:label "30 dB/Oct" ; rdf:value 30 ] ;
 		] ,
 		[
 			a lv2:ControlPort , lv2:InputPort ;
@@ -310,11 +313,14 @@
 			lv2:name "Low Shelf Slope" ;
 			pg:group <https://github.com/tylorismusic-commits/common-sense-eq#band2> ;
 			lv2:default 24 ;
-			lv2:minimum 12 ;
-			lv2:maximum 24 ;
+			lv2:minimum 6 ;
+			lv2:maximum 30 ;
 			lv2:portProperty lv2:integer , lv2:enumeration ;
-			lv2:scalePoint [ rdfs:label "12" ; rdf:value 12 ] ;
-			lv2:scalePoint [ rdfs:label "24" ; rdf:value 24 ] ;
+			lv2:scalePoint [ rdfs:label "6 dB/Oct" ; rdf:value 6 ] ;
+			lv2:scalePoint [ rdfs:label "12 dB/Oct" ; rdf:value 12 ] ;
+			lv2:scalePoint [ rdfs:label "18 dB/Oct" ; rdf:value 18 ] ;
+			lv2:scalePoint [ rdfs:label "24 dB/Oct" ; rdf:value 24 ] ;
+			lv2:scalePoint [ rdfs:label "30 dB/Oct" ; rdf:value 30 ] ;
 		] ,
 		[
 			a lv2:ControlPort , lv2:InputPort ;
@@ -448,11 +454,14 @@
 			lv2:name "Bell 1 Slope" ;
 			pg:group <https://github.com/tylorismusic-commits/common-sense-eq#band3> ;
 			lv2:default 24 ;
-			lv2:minimum 12 ;
-			lv2:maximum 24 ;
+			lv2:minimum 6 ;
+			lv2:maximum 30 ;
 			lv2:portProperty lv2:integer , lv2:enumeration ;
-			lv2:scalePoint [ rdfs:label "12" ; rdf:value 12 ] ;
-			lv2:scalePoint [ rdfs:label "24" ; rdf:value 24 ] ;
+			lv2:scalePoint [ rdfs:label "6 dB/Oct" ; rdf:value 6 ] ;
+			lv2:scalePoint [ rdfs:label "12 dB/Oct" ; rdf:value 12 ] ;
+			lv2:scalePoint [ rdfs:label "18 dB/Oct" ; rdf:value 18 ] ;
+			lv2:scalePoint [ rdfs:label "24 dB/Oct" ; rdf:value 24 ] ;
+			lv2:scalePoint [ rdfs:label "30 dB/Oct" ; rdf:value 30 ] ;
 		] ,
 		[
 			a lv2:ControlPort , lv2:InputPort ;
@@ -586,11 +595,14 @@
 			lv2:name "Bell 2 Slope" ;
 			pg:group <https://github.com/tylorismusic-commits/common-sense-eq#band4> ;
 			lv2:default 24 ;
-			lv2:minimum 12 ;
-			lv2:maximum 24 ;
+			lv2:minimum 6 ;
+			lv2:maximum 30 ;
 			lv2:portProperty lv2:integer , lv2:enumeration ;
-			lv2:scalePoint [ rdfs:label "12" ; rdf:value 12 ] ;
-			lv2:scalePoint [ rdfs:label "24" ; rdf:value 24 ] ;
+			lv2:scalePoint [ rdfs:label "6 dB/Oct" ; rdf:value 6 ] ;
+			lv2:scalePoint [ rdfs:label "12 dB/Oct" ; rdf:value 12 ] ;
+			lv2:scalePoint [ rdfs:label "18 dB/Oct" ; rdf:value 18 ] ;
+			lv2:scalePoint [ rdfs:label "24 dB/Oct" ; rdf:value 24 ] ;
+			lv2:scalePoint [ rdfs:label "30 dB/Oct" ; rdf:value 30 ] ;
 		] ,
 		[
 			a lv2:ControlPort , lv2:InputPort ;
@@ -724,11 +736,14 @@
 			lv2:name "Bell 3 Slope" ;
 			pg:group <https://github.com/tylorismusic-commits/common-sense-eq#band5> ;
 			lv2:default 24 ;
-			lv2:minimum 12 ;
-			lv2:maximum 24 ;
+			lv2:minimum 6 ;
+			lv2:maximum 30 ;
 			lv2:portProperty lv2:integer , lv2:enumeration ;
-			lv2:scalePoint [ rdfs:label "12" ; rdf:value 12 ] ;
-			lv2:scalePoint [ rdfs:label "24" ; rdf:value 24 ] ;
+			lv2:scalePoint [ rdfs:label "6 dB/Oct" ; rdf:value 6 ] ;
+			lv2:scalePoint [ rdfs:label "12 dB/Oct" ; rdf:value 12 ] ;
+			lv2:scalePoint [ rdfs:label "18 dB/Oct" ; rdf:value 18 ] ;
+			lv2:scalePoint [ rdfs:label "24 dB/Oct" ; rdf:value 24 ] ;
+			lv2:scalePoint [ rdfs:label "30 dB/Oct" ; rdf:value 30 ] ;
 		] ,
 		[
 			a lv2:ControlPort , lv2:InputPort ;
@@ -862,11 +877,14 @@
 			lv2:name "Bell 4 Slope" ;
 			pg:group <https://github.com/tylorismusic-commits/common-sense-eq#band6> ;
 			lv2:default 24 ;
-			lv2:minimum 12 ;
-			lv2:maximum 24 ;
+			lv2:minimum 6 ;
+			lv2:maximum 30 ;
 			lv2:portProperty lv2:integer , lv2:enumeration ;
-			lv2:scalePoint [ rdfs:label "12" ; rdf:value 12 ] ;
-			lv2:scalePoint [ rdfs:label "24" ; rdf:value 24 ] ;
+			lv2:scalePoint [ rdfs:label "6 dB/Oct" ; rdf:value 6 ] ;
+			lv2:scalePoint [ rdfs:label "12 dB/Oct" ; rdf:value 12 ] ;
+			lv2:scalePoint [ rdfs:label "18 dB/Oct" ; rdf:value 18 ] ;
+			lv2:scalePoint [ rdfs:label "24 dB/Oct" ; rdf:value 24 ] ;
+			lv2:scalePoint [ rdfs:label "30 dB/Oct" ; rdf:value 30 ] ;
 		] ,
 		[
 			a lv2:ControlPort , lv2:InputPort ;
@@ -1000,11 +1018,14 @@
 			lv2:name "High Shelf Slope" ;
 			pg:group <https://github.com/tylorismusic-commits/common-sense-eq#band7> ;
 			lv2:default 24 ;
-			lv2:minimum 12 ;
-			lv2:maximum 24 ;
+			lv2:minimum 6 ;
+			lv2:maximum 30 ;
 			lv2:portProperty lv2:integer , lv2:enumeration ;
-			lv2:scalePoint [ rdfs:label "12" ; rdf:value 12 ] ;
-			lv2:scalePoint [ rdfs:label "24" ; rdf:value 24 ] ;
+			lv2:scalePoint [ rdfs:label "6 dB/Oct" ; rdf:value 6 ] ;
+			lv2:scalePoint [ rdfs:label "12 dB/Oct" ; rdf:value 12 ] ;
+			lv2:scalePoint [ rdfs:label "18 dB/Oct" ; rdf:value 18 ] ;
+			lv2:scalePoint [ rdfs:label "24 dB/Oct" ; rdf:value 24 ] ;
+			lv2:scalePoint [ rdfs:label "30 dB/Oct" ; rdf:value 30 ] ;
 		] ,
 		[
 			a lv2:ControlPort , lv2:InputPort ;
@@ -1138,11 +1159,14 @@
 			lv2:name "High Cut Slope" ;
 			pg:group <https://github.com/tylorismusic-commits/common-sense-eq#band8> ;
 			lv2:default 24 ;
-			lv2:minimum 12 ;
-			lv2:maximum 24 ;
+			lv2:minimum 6 ;
+			lv2:maximum 30 ;
 			lv2:portProperty lv2:integer , lv2:enumeration ;
-			lv2:scalePoint [ rdfs:label "12" ; rdf:value 12 ] ;
-			lv2:scalePoint [ rdfs:label "24" ; rdf:value 24 ] ;
+			lv2:scalePoint [ rdfs:label "6 dB/Oct" ; rdf:value 6 ] ;
+			lv2:scalePoint [ rdfs:label "12 dB/Oct" ; rdf:value 12 ] ;
+			lv2:scalePoint [ rdfs:label "18 dB/Oct" ; rdf:value 18 ] ;
+			lv2:scalePoint [ rdfs:label "24 dB/Oct" ; rdf:value 24 ] ;
+			lv2:scalePoint [ rdfs:label "30 dB/Oct" ; rdf:value 30 ] ;
 		] ,
 		[
 			a lv2:ControlPort , lv2:InputPort ;

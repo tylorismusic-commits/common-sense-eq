@@ -503,6 +503,21 @@ void Panel::cycleAB(UiState& state, const Setter& set) {
   state.presetDirty = true;
 }
 
+void Panel::cycleSlope(UiState& state, int band, int direction,
+                       const Setter& set) {
+  static constexpr float kSlopes[] = {6.0f, 12.0f, 18.0f, 24.0f, 30.0f};
+  const float current = state.values[bandParam(band, kSlotSlope)];
+  int index = 0;
+  for (int i = 0; i < 5; ++i) {
+    if (std::fabs(kSlopes[i] - current) < 0.5f) {
+      index = i;
+      break;
+    }
+  }
+  index = (index + direction + 5) % 5;
+  setValue(state, bandParam(band, kSlotSlope), kSlopes[index], set);
+}
+
 // ---------------------------------------------------------------------------
 // Drawing
 // ---------------------------------------------------------------------------
@@ -1363,9 +1378,7 @@ bool Panel::pointerDown(UiState& state, double x, double y, bool fine,
       dragStartValue_ = state.values[bandParam(cell.band, kSlotFreq)];
     } else if (cell.row == 1) {
       if (bandIsCut(cell.band)) {
-        const float slope = state.values[bandParam(cell.band, kSlotSlope)];
-        setValue(state, bandParam(cell.band, kSlotSlope),
-                 slope > 18.0f ? 12.0f : 24.0f, set);
+        cycleSlope(state, cell.band, 1, set);
         drag_ = Drag::Idle;
       } else {
         drag_ = Drag::CellGain;
@@ -1500,9 +1513,26 @@ bool Panel::wheel(UiState& state, double x, double y, double delta, bool fine,
   }
 
   const double sens = fine ? 0.25 : 1.0;
+  const IconHit icon = iconAt(x, y);
+  if (icon.band >= 0 && bandIsCut(icon.band)) {
+    selectBand(state, icon.band);
+    cycleSlope(state, icon.band, delta > 0.0 ? 1 : -1, set);
+    return true;
+  }
+
   const CellHit cell = cellAt(x, y);
   if (cell.band >= 0) {
     selectBand(state, cell.band);
+    if (bandIsCut(cell.band)) {
+      if (cell.row == 0) {
+        const float f = state.values[bandParam(cell.band, kSlotFreq)];
+        setValue(state, bandParam(cell.band, kSlotFreq),
+                 static_cast<float>(f * std::exp(delta * 0.04 * sens)), set);
+      } else {
+        cycleSlope(state, cell.band, delta > 0.0 ? 1 : -1, set);
+      }
+      return true;
+    }
     if (cell.row == 0) {
       const float f = state.values[bandParam(cell.band, kSlotFreq)];
       setValue(state, bandParam(cell.band, kSlotFreq),
@@ -1510,9 +1540,6 @@ bool Panel::wheel(UiState& state, double x, double y, double delta, bool fine,
       return true;
     }
     if (cell.row == 1) {
-      if (bandIsCut(cell.band)) {
-        return false;
-      }
       const float g = state.values[bandParam(cell.band, kSlotGain)];
       setValue(state, bandParam(cell.band, kSlotGain),
                static_cast<float>(g + delta * 0.5 * sens), set);
@@ -1529,6 +1556,11 @@ bool Panel::wheel(UiState& state, double x, double y, double delta, bool fine,
   }
   const int band = nearestBand(state, x, y);
   const int target = band >= 0 ? band : state.selectedBand;
+  if (bandIsCut(target)) {
+    selectBand(state, target);
+    cycleSlope(state, target, delta > 0.0 ? 1 : -1, set);
+    return true;
+  }
   if (!bandHasGain(target)) {
     return false;
   }

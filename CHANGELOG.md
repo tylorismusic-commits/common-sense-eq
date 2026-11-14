@@ -5,6 +5,8 @@
 - Initial release.
 - Eight-band zero-latency channel EQ: low cut, low shelf, four bells, high
   shelf, high cut.
+- Selectable cut slopes: 6, 12, 18, 24, or 30 dB per octave, with wheel
+  editing on the cut icons, nodes, and bottom-strip columns.
 - Per-band dynamics with threshold, ratio, attack, release, range, and
   up/down mode.
 - PRE/POST FFT analyzer, Q-Couple, stereo/mono/L/R processing, output gain,

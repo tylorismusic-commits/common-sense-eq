@@ -41,6 +41,9 @@ public:
     for (auto& s : bq2State_) {
       s.reset();
     }
+    for (auto& s : bq3State_) {
+      s.reset();
+    }
     update();
   }
 
@@ -73,19 +76,41 @@ public:
       shelf_.setLowShelf(f, g, q, sampleRate_);
     } else if (shape_ == kHighShelf) {
       shelf_.setHighShelf(f, g, q, sampleRate_);
-    } else if (shape_ == kLowCut) {
-      cut1_.setHighPass(f, 0.70710678f, sampleRate_);
-      if (slope_ >= 24) {
-        cut2_.setHighPass(f, 0.70710678f, sampleRate_);
+    } else {
+      const bool lowCut = shape_ == kLowCut;
+      const bool useFirst = slope_ == 6 || slope_ == 18 || slope_ == 30;
+      const int secondOrder =
+          (slope_ == 12) ? 1
+          : (slope_ == 18) ? 1
+          : (slope_ == 24) ? 2
+          : (slope_ == 30) ? 2
+                           : 0;
+      if (useFirst) {
+        if (lowCut) {
+          cut1_.setFirstOrderHighPass(f, sampleRate_);
+        } else {
+          cut1_.setFirstOrderLowPass(f, sampleRate_);
+        }
+      } else {
+        cut1_.identity();
+      }
+      if (secondOrder >= 1) {
+        if (lowCut) {
+          cut2_.setHighPass(f, 0.70710678f, sampleRate_);
+        } else {
+          cut2_.setLowPass(f, 0.70710678f, sampleRate_);
+        }
       } else {
         cut2_.identity();
       }
-    } else {
-      cut1_.setLowPass(f, 0.70710678f, sampleRate_);
-      if (slope_ >= 24) {
-        cut2_.setLowPass(f, 0.70710678f, sampleRate_);
+      if (secondOrder >= 2) {
+        if (lowCut) {
+          cut3_.setHighPass(f, 0.70710678f, sampleRate_);
+        } else {
+          cut3_.setLowPass(f, 0.70710678f, sampleRate_);
+        }
       } else {
-        cut2_.identity();
+        cut3_.identity();
       }
     }
   }
@@ -100,9 +125,8 @@ public:
       return bq1State_[channel].process(x, shelf_);
     }
     float y = bq1State_[channel].process(x, cut1_);
-    if (slope_ >= 24) {
-      y = bq2State_[channel].process(y, cut2_);
-    }
+    y = bq2State_[channel].process(y, cut2_);
+    y = bq3State_[channel].process(y, cut3_);
     return y;
   }
 
@@ -114,6 +138,9 @@ public:
       s.reset();
     }
     for (auto& s : bq2State_) {
+      s.reset();
+    }
+    for (auto& s : bq3State_) {
       s.reset();
     }
     freq_.snap();
@@ -146,11 +173,9 @@ public:
     if (shape_ == kLowShelf || shape_ == kHighShelf) {
       return shelf_.magnitudeDb(freq, sampleRate_);
     }
-    float db = cut1_.magnitudeDb(freq, sampleRate_);
-    if (slope_ >= 24) {
-      db += cut2_.magnitudeDb(freq, sampleRate_);
-    }
-    return db;
+    return cut1_.magnitudeDb(freq, sampleRate_) +
+           cut2_.magnitudeDb(freq, sampleRate_) +
+           cut3_.magnitudeDb(freq, sampleRate_);
   }
 
 private:
@@ -161,9 +186,11 @@ private:
   BiquadCoeffs shelf_;
   BiquadCoeffs cut1_;
   BiquadCoeffs cut2_;
+  BiquadCoeffs cut3_;
   SVFState bellState_[2];
   BiquadState bq1State_[2];
   BiquadState bq2State_[2];
+  BiquadState bq3State_[2];
   Smoothed freq_;
   Smoothed gain_;
   Smoothed dyn_;

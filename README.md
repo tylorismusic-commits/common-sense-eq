@@ -23,8 +23,8 @@ included.
 
 ## Features
 
-- **Eight fixed bands** — 12/24 dB-per-octave low cut, low shelf, four bells,
-  high shelf, and a 12/24 dB-per-octave high cut. Defaults match the familiar
+- **Eight fixed bands** — 6/12/18/24/30 dB-per-octave low cut, low shelf, four
+  bells, high shelf, and a 6/12/18/24/30 dB-per-octave high cut. Defaults match the familiar
   channel-EQ layout (20 Hz, 75 Hz, 100 Hz, 270 Hz, 750 Hz, 2.5 kHz, 4.6 kHz,
   20 kHz).
 - **Dynamic bands** — every shelf and bell can follow the programme with
@@ -144,7 +144,8 @@ MCP**. In the embedded view:
 | Double-click a node | Reset gain (or frequency for cuts) |
 | Right-click near a band | Select it and open its dynamics |
 | Drag a bottom-strip value | Frequency, gain, or Q |
-| Click a cut band's slope row | Toggle 12/24 dB per octave |
+| Click a cut band's slope row | Cycle 6 → 12 → 18 → 24 → 30 dB/oct |
+| Wheel a cut band (icon, node, or column) | Change its slope |
 | Click **Analyzer** | PRE/POST |
 | Click **Q-Couple** | Couple Q to gain |
 | Click **Processing** | Stereo → Mono → Left → Right |

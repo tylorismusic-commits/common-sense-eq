@@ -111,6 +111,30 @@ struct BiquadCoeffs {
     a2 = ((a + 1.0f) - (a - 1.0f) * cosw - 2.0f * sqrtA * alpha) / a0;
   }
 
+  // First-order sections, expressed as biquads with b2 = a2 = 0.  Used for
+  // the 6, 18, and 30 dB/oct cut slopes.
+  void setFirstOrderLowPass(float f0, float sampleRate) noexcept {
+    const float cutoff = clamp(f0, 5.0f, sampleRate * 0.49f);
+    const float g = std::tan(kPi * cutoff / sampleRate);
+    const float G = g / (1.0f + g);
+    b0 = G;
+    b1 = G;
+    b2 = 0.0f;
+    a1 = 2.0f * G - 1.0f;
+    a2 = 0.0f;
+  }
+
+  void setFirstOrderHighPass(float f0, float sampleRate) noexcept {
+    const float cutoff = clamp(f0, 5.0f, sampleRate * 0.49f);
+    const float g = std::tan(kPi * cutoff / sampleRate);
+    const float G = g / (1.0f + g);
+    b0 = 1.0f - G;
+    b1 = -(1.0f - G);
+    b2 = 0.0f;
+    a1 = 2.0f * G - 1.0f;
+    a2 = 0.0f;
+  }
+
   void setHighPass(float f0, float q, float sampleRate) noexcept {
     const float w0 = 2.0f * kPi * clamp(f0, 5.0f, sampleRate * 0.49f) /
                      sampleRate;
