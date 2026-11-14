@@ -262,6 +262,7 @@ public:
     }
     values[id].store(value, std::memory_order_relaxed);
     uiDirty[id].store(true, std::memory_order_release);
+    toUiDirty[id].store(true, std::memory_order_release);
     if (host && host->request_process) {
       host->request_process(host);
     }
