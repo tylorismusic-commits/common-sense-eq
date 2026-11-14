@@ -39,14 +39,35 @@ inline float bandResponseDb(BandShape shape, float f0, float gainDb, float q,
     return c.magnitudeDb(freq, sampleRate);
   }
 
+  // Mirror the audio path's cut cascade: first-order sections for 6/18/30
+  // and up to two second-order sections for 12/18/24/30.
+  const bool lowCut = shape == kLowCut;
+  const bool useFirst = slope == 6 || slope == 18 || slope == 30;
+  const int secondOrder =
+      (slope == 12) ? 1
+      : (slope == 18) ? 1
+      : (slope == 24) ? 2
+      : (slope == 30) ? 2
+                       : 0;
+  float db = 0.0f;
   BiquadCoeffs c;
-  if (shape == kLowCut) {
-    c.setHighPass(f0, 0.70710678f, sampleRate);
-  } else {
-    c.setLowPass(f0, 0.70710678f, sampleRate);
+  if (useFirst) {
+    if (lowCut) {
+      c.setFirstOrderHighPass(f0, sampleRate);
+    } else {
+      c.setFirstOrderLowPass(f0, sampleRate);
+    }
+    db += c.magnitudeDb(freq, sampleRate);
   }
-  const float one = c.magnitudeDb(freq, sampleRate);
-  return (slope >= 24) ? one * 2.0f : one;
+  for (int section = 0; section < secondOrder; ++section) {
+    if (lowCut) {
+      c.setHighPass(f0, 0.70710678f, sampleRate);
+    } else {
+      c.setLowPass(f0, 0.70710678f, sampleRate);
+    }
+    db += c.magnitudeDb(freq, sampleRate);
+  }
+  return db;
 }
 
 inline float bandResponseDb(const Params& p, int band, float freq,

@@ -132,9 +132,13 @@ int main() {
       const auto ir = impulseResponse(strip, p, 8192);
       const double at25 = dftDb(ir, 25.0, 48000.0);
       const double at1k = dftDb(ir, 1000.0, 48000.0);
-      std::printf("low cut %d dB/oct: 25 Hz %.1f dB, 1 kHz %.1f dB\n", slope,
-                  at25, at1k);
+      const double drawn = cse::bandResponseDb(
+          cse::kLowCut, 100.0f, 0.0f, 0.70710678f, slope, 25.0f, 48000.0f);
+      std::printf("low cut %d dB/oct: 25 Hz %.1f dB (curve %.1f dB), "
+                  "1 kHz %.1f dB\n", slope, at25, drawn, at1k);
       check(at1k > -0.5, "cut passes the top end at every slope");
+      check(std::fabs(at25 - drawn) < 1.0,
+            "drawn cut curve matches the audio response");
       if (slope > 6 && at25 > previous) {
         monotonic = false;
       }
