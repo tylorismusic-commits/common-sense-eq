@@ -8,8 +8,10 @@
 #include <vector>
 #include <unistd.h>
 
+#ifdef CSE_HAVE_XTEST
 #include <X11/Xlib.h>
 #include <X11/extensions/XTest.h>
+#endif
 
 #include <clap/clap.h>
 
@@ -233,6 +235,7 @@ int main(int argc, char** argv) {
     check(status == CLAP_PROCESS_CONTINUE, "process continues");
   }
   if (guiMode) {
+#ifdef CSE_HAVE_XTEST
     Display* display = XOpenDisplay(nullptr);
     check(display != nullptr, "GUI test opens X display");
     if (display) {
@@ -267,6 +270,7 @@ int main(int argc, char** argv) {
       XDestroyWindow(display, parent);
       XCloseDisplay(display);
     }
+#endif
   }
 
   bool finite = true;

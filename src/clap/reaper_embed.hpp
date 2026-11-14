@@ -75,8 +75,8 @@ enum : INT_PTR {
 };
 
 struct EmbedUI {
-  INT_PTR (*inline_editor)(const clap_plugin_t* plugin, int msg, void* param1,
-                           void* param2);
+  INT_PTR (CLAP_ABI *inline_editor)(const clap_plugin_t* plugin, int msg,
+                                    void* param1, void* param2);
 };
 
 inline constexpr const char* kExtensionId = "cockos.reaper_embedui";

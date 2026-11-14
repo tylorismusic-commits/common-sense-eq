@@ -1211,10 +1211,11 @@ bool Panel::pointerDown(UiState& state, double x, double y, bool fine,
       return true;
     }
     if (x >= 900 && x <= 988 && y >= 12 && y <= 42) {
-      if (bandHasGain(state.selectedBand)) {
-        state.showDyn = !state.showDyn;
-        return true;
+      if (!bandHasGain(state.selectedBand)) {
+        state.selectedBand = 3;
       }
+      state.showDyn = !state.showDyn;
+      return true;
     }
     return false;
   }
@@ -1332,11 +1333,11 @@ bool Panel::pointerDown(UiState& state, double x, double y, bool fine,
       return true;
     }
     if (x >= 494 && x <= 610 && y >= kFooterY + 14 && y <= kFooterY + 44) {
-      if (bandHasGain(state.selectedBand)) {
-        state.showDyn = !state.showDyn;
-        return true;
+      if (!bandHasGain(state.selectedBand)) {
+        state.selectedBand = 3;
       }
-      return false;
+      state.showDyn = !state.showDyn;
+      return true;
     }
     if (x >= 940 && x <= 1072 && y >= kFooterY + 12 && y <= kFooterY + 46) {
       drag_ = Drag::OutputGain;

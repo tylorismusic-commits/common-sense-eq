@@ -639,7 +639,6 @@ public:
   }
 
   void uiThreadLoop() {
-    int tick = 0;
     while (uiRunning.load()) {
       {
         std::lock_guard<std::mutex> lock(uiMutex);
@@ -650,7 +649,7 @@ public:
               uiDesc->port_event(ui, i, sizeof(float), 0, &value);
             }
           }
-          if ((tick++ % 2) == 0) {
+          {
             float spec[kSpectrumCount];
             float gr[kGrCount];
             for (uint32_t i = 0; i < kSpectrumCount; ++i) {

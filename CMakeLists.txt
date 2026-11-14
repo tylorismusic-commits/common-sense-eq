@@ -158,7 +158,13 @@ cse_common(common_sense_eq_clap_host_test)
 target_include_directories(common_sense_eq_clap_host_test PRIVATE
   "${CMAKE_SOURCE_DIR}/third_party/clap/include")
 target_link_libraries(common_sense_eq_clap_host_test PRIVATE
-  ${CMAKE_DL_LIBS} Threads::Threads PkgConfig::X11 ${CSE_XTST_LIBRARY})
+  ${CMAKE_DL_LIBS} Threads::Threads)
+if(CSE_XTST_LIBRARY)
+  target_compile_definitions(common_sense_eq_clap_host_test PRIVATE
+    CSE_HAVE_XTEST)
+  target_link_libraries(common_sense_eq_clap_host_test PRIVATE
+    PkgConfig::X11 ${CSE_XTST_LIBRARY})
+endif()
 add_dependencies(common_sense_eq_clap_host_test common_sense_eq_clap_bundle)
 add_test(NAME common_sense_eq_clap_host
   COMMAND common_sense_eq_clap_host_test

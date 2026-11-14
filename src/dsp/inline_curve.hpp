@@ -297,7 +297,8 @@ public:
       }
     }
 
-    // Static (set) curve when dynamics are moving the applied curve.
+    // Static (set) curve and the reduction ribbon when dynamics are moving
+    // the applied curve.
     bool anyDynamic = false;
     for (int b = 0; b < 8; ++b) {
       if (snap.params.bands[b].dynOn &&
@@ -306,6 +307,20 @@ public:
       }
     }
     if (anyDynamic) {
+      for (int x = x0; x <= x1; ++x) {
+        const float f = logFreq(static_cast<float>(x) + 0.5f, r);
+        const float liveDb =
+            totalResponseDb(snap.params, snap.dynDb, f, 48000.0f);
+        const float setDb = totalResponseDb(snap.params, nullptr, f, 48000.0f);
+        const int yLive =
+            static_cast<int>(std::lround(dbY(clamp(liveDb, -30.0f, 30.0f), r)));
+        const int ySet =
+            static_cast<int>(std::lround(dbY(clamp(setDb, -30.0f, 30.0f), r)));
+        const int ya = std::min(yLive, ySet);
+        const int yb = std::max(yLive, ySet);
+        fillRect(pixels, width, height, rowSpan, x, ya, x + 1, yb,
+                 argb(220, 168, 90), 0.22f);
+      }
       drawCurve(pixels, width, height, rowSpan, snap, r, false);
     }
     drawCurve(pixels, width, height, rowSpan, snap, r, true);

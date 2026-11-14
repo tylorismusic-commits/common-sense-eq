@@ -7,6 +7,7 @@
 
 #include "dsp/analyzer.hpp"
 #include "dsp/curve.hpp"
+#include "dsp/inline_curve.hpp"
 #include "dsp/params.hpp"
 #include "dsp/strip.hpp"
 
@@ -203,6 +204,40 @@ int main() {
     }
     const double peakHz = 20.0 * std::pow(1000.0, peak / 31.0);
     check(peakHz > 500.0 && peakHz < 2000.0, "analyzer finds a 1 kHz tone");
+  }
+
+  // Inline renderer: respects the row span and draws inside its bounds.
+  {
+    cse::Params p = flatParams();
+    p.bands[3].on = true;
+    p.bands[3].freq = 800.0f;
+    p.bands[3].gainDb = 6.0f;
+    cse::InlineSnapshot snap;
+    snap.params = p;
+    constexpr int w = 180;
+    constexpr int h = 60;
+    constexpr int span = w + 8;
+    std::vector<uint32_t> pixels(static_cast<size_t>(span) * h, 0xdeadbeefu);
+    cse::InlineDisplay::drawInto(snap, w, h, pixels.data(), span);
+    bool paddingUntouched = true;
+    for (int y = 0; y < h; ++y) {
+      for (int x = w; x < span; ++x) {
+        if (pixels[static_cast<size_t>(y) * span + x] != 0xdeadbeefu) {
+          paddingUntouched = false;
+        }
+      }
+    }
+    check(paddingUntouched, "inline renderer respects row span");
+    unsigned checksum = 0;
+    for (int y = 0; y < h; ++y) {
+      for (int x = 0; x < w; ++x) {
+        checksum += pixels[static_cast<size_t>(y) * span + x];
+      }
+    }
+    check(checksum != 0, "inline renderer writes pixels");
+    cse::InlineDisplay display;
+    check(display.render(snap, 8, 8) == nullptr,
+          "inline renderer rejects tiny surfaces");
   }
 
   if (failures == 0) {
