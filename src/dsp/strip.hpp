@@ -18,7 +18,7 @@ namespace cse {
 struct DynUnit {
   void prepare(float sampleRate) noexcept {
     sampleRate_ = sampleRate;
-    delta_.setTime(3.0f, sampleRate);
+    delta_.setTime(0.5f, sampleRate);
     delta_.reset(0.0f);
     for (auto& s : state_) {
       s.reset();

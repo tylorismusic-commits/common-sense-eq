@@ -25,7 +25,7 @@ public:
     shape_ = shape;
     freq_.setTime(20.0f, sampleRate);
     gain_.setTime(20.0f, sampleRate);
-    dyn_.setTime(3.0f, sampleRate);
+    dyn_.setTime(1.0f, sampleRate);
     q_.setTime(20.0f, sampleRate);
     freq_.reset(clamp(freq, 20.0f, 20000.0f));
     gain_.reset(gainDb);
