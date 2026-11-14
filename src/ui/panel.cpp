@@ -80,6 +80,9 @@ void textAt(cairo_t* cr, const char* text, double x, double y, double size,
   setColor(cr, color, alpha);
   cairo_move_to(cr, px, y);
   cairo_show_text(cr, text);
+  // show_text leaves the move_to subpath behind; a following arc would
+  // connect to it with a stray line.
+  cairo_new_path(cr);
 }
 
 void chip(cairo_t* cr, double x, double y, double w, double h, bool on,
@@ -506,6 +509,7 @@ void Panel::cycleAB(UiState& state, const Setter& set) {
 void Panel::draw(cairo_t* cr, UiState& state) {
   fontScale = 1.0;
   cairo_save(cr);
+  cairo_new_path(cr);
 
   cairo_pattern_t* bg = cairo_pattern_create_linear(0, 0, 0, kHeight);
   cairo_pattern_add_color_stop_rgb(bg, 0.0, kBgTop.r, kBgTop.g, kBgTop.b);
@@ -1240,8 +1244,7 @@ bool Panel::pointerDown(UiState& state, double x, double y, bool fine,
   (void)fine;
   // Top bar.
   if (y <= kTopH) {
-    const double px = 32.0;
-    if ((x - px) * (x - px) + (y - 27.0) * (y - 27.0) <= 18.0 * 18.0) {
+    if (x >= 12.0 && x <= 56.0 && y >= 12.0 && y <= 42.0) {
       setValue(state, PORT_ENABLE,
                state.values[PORT_ENABLE] > 0.5f ? 0.0f : 1.0f, set);
       return true;
