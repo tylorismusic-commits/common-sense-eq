@@ -259,12 +259,14 @@ void onButtonRelease(X11UI* ui) {
 }
 
 void onMotion(X11UI* ui, XMotionEvent& ev) {
-  if (!ui->dragging) {
-    return;
-  }
   double x = 0.0;
   double y = 0.0;
   toLogical(ui, ev.x, ev.y, x, y);
+  ui->panel.setHover(x, y);
+  ui->dirty = true;
+  if (!ui->dragging) {
+    return;
+  }
   const bool fine = (ev.state & ShiftMask) != 0;
   if (ui->panel.pointerMove(ui->state, x, y, fine,
                             [ui](uint32_t port, float value) {
@@ -306,6 +308,10 @@ void processEvents(X11UI* ui) {
         break;
       case MotionNotify:
         onMotion(ui, ev.xmotion);
+        break;
+      case LeaveNotify:
+        ui->panel.setHover(-10000.0, -10000.0);
+        ui->dirty = true;
         break;
       default:
         break;

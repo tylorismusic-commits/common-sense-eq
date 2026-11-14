@@ -68,6 +68,10 @@ public:
   bool rightClick(UiState& state, double x, double y);
 
   bool dragging() const { return drag_ != Drag::Idle; }
+  void setHover(double x, double y) {
+    hoverX_ = x;
+    hoverY_ = y;
+  }
 
 private:
   enum class Drag {
@@ -110,6 +114,8 @@ private:
   double dragStartValue_ = 0.0;
   double dragStartValue2_ = 0.0;
   uint32_t dragPort_ = 0;
+  double hoverX_ = -10000.0;
+  double hoverY_ = -10000.0;
   bool hoverDyn_ = false;
 };
 

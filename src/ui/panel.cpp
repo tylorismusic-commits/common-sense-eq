@@ -36,7 +36,7 @@ const Rgb kBgBottom{0.043, 0.063, 0.098};
 const Rgb kPanel{0.090, 0.125, 0.180};
 const Rgb kPanelHi{0.118, 0.157, 0.220};
 const Rgb kLine{0.157, 0.204, 0.282};
-const Rgb kGrid{0.129, 0.169, 0.239};
+const Rgb kGrid{0.145, 0.192, 0.271};
 const Rgb kText{0.902, 0.925, 0.957};
 const Rgb kMuted{0.545, 0.596, 0.671};
 const Rgb kDim{0.361, 0.404, 0.478};
@@ -693,8 +693,8 @@ void Panel::drawGraph(cairo_t* cr, UiState& state) {
   cairo_clip(cr);
 
   cairo_pattern_t* bg = cairo_pattern_create_linear(0, kGraphY, 0, kGraphBottom);
-  cairo_pattern_add_color_stop_rgb(bg, 0.0, 0.055, 0.078, 0.118);
-  cairo_pattern_add_color_stop_rgb(bg, 1.0, 0.039, 0.055, 0.086);
+  cairo_pattern_add_color_stop_rgb(bg, 0.0, 0.075, 0.106, 0.161);
+  cairo_pattern_add_color_stop_rgb(bg, 1.0, 0.047, 0.067, 0.102);
   cairo_set_source(cr, bg);
   cairo_paint(cr);
   cairo_pattern_destroy(bg);
@@ -893,8 +893,11 @@ void Panel::drawGraph(cairo_t* cr, UiState& state) {
     textAt(cr, label, kGraphX + 8.0, y - 5.0, 8.0, true, kAmber);
   }
 
-  // Selected tooltip.
-  if (sel >= 0) {
+  // Selected tooltip: only while dragging or hovering that band.
+  const bool showTip =
+      sel >= 0 && (drag_ == Drag::Node ||
+                   nearestBand(state, hoverX_, hoverY_) == sel);
+  if (showTip) {
     const double f = state.values[bandParam(sel, kSlotFreq)];
     const bool cut = bandIsCut(sel);
     const double gain = cut ? 0.0 : state.values[bandParam(sel, kSlotGain)];
