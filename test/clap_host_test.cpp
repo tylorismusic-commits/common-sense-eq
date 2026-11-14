@@ -354,7 +354,7 @@ int main(int argc, char** argv) {
   // The CLAP process path must actually apply the EQ/output gain.
   if (state) {
     MemoryStream boost;
-    const char* boostState = "CSE1\n5 12\n";
+    const char* boostState = "CSE1\n4 1\n5 12\n";
     boost.data.assign(boostState, boostState + std::strlen(boostState));
     clap_istream_t bis{&boost, &memRead};
     check(state->load(plugin, &bis), "boost state loads");
