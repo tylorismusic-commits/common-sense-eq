@@ -1245,8 +1245,8 @@ bool Panel::pointerDown(UiState& state, double x, double y, bool fine,
       const int row = dynRowAt(x, y);
       if (row >= 0) {
         static const BandSlot slots[5] = {kSlotDynThreshold, kSlotDynRatio,
-                                          kSlotDynAttack, kSlotDynRelease,
-                                          kSlotDynRange};
+                                          kSlotDynRange, kSlotDynAttack,
+                                          kSlotDynRelease};
         drag_ = Drag::DynRow;
         dragRow_ = row;
         dragPort_ = bandParam(state.selectedBand, slots[row]);
