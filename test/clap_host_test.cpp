@@ -142,6 +142,19 @@ int main(int argc, char** argv) {
   }
 
   check(plugin->init(plugin), "plugin init");
+  auto* ports = static_cast<const clap_plugin_audio_ports_t*>(
+      plugin->get_extension(plugin, CLAP_EXT_AUDIO_PORTS));
+  check(ports != nullptr, "audio ports extension");
+  if (ports) {
+    check(ports->count(plugin, true) == 1, "one audio input");
+    check(ports->count(plugin, false) == 1, "one audio output");
+    clap_audio_port_info_t portInfo{};
+    check(ports->get(plugin, 0, true, &portInfo), "audio input info");
+    check(portInfo.channel_count == 2, "stereo input");
+    check((portInfo.flags & CLAP_AUDIO_PORT_IS_MAIN) != 0,
+          "main audio input");
+  }
+
   auto* params = static_cast<const clap_plugin_params_t*>(
       plugin->get_extension(plugin, CLAP_EXT_PARAMS));
   check(params != nullptr, "params extension");
@@ -336,6 +349,33 @@ int main(int argc, char** argv) {
     inMem.data = mem.data;
     clap_istream_t is{&inMem, &memRead};
     check(state->load(plugin, &is), "state load");
+  }
+
+  // The CLAP process path must actually apply the EQ/output gain.
+  if (state) {
+    MemoryStream boost;
+    const char* boostState = "CSE1\n5 12\n";
+    boost.data.assign(boostState, boostState + std::strlen(boostState));
+    clap_istream_t bis{&boost, &memRead};
+    check(state->load(plugin, &bis), "boost state loads");
+    double inEnergy = 0.0;
+    double outEnergy = 0.0;
+    for (int block = 0; block < 24; ++block) {
+      for (int i = 0; i < 512; ++i) {
+        const double t = (block * 512 + i) / 48000.0;
+        inL[i] = inR[i] = static_cast<float>(0.2 * std::sin(2.0 * M_PI * 1000.0 * t));
+      }
+      plugin->process(plugin, &process);
+      if (block > 16) {
+        for (int i = 0; i < 512; ++i) {
+          inEnergy += static_cast<double>(inL[i]) * inL[i];
+          outEnergy += static_cast<double>(outL[i]) * outL[i];
+        }
+      }
+    }
+    const double gainDb = 10.0 * std::log10(outEnergy / inEnergy);
+    std::printf("CLAP process gain with +12 dB state: %.2f dB\n", gainDb);
+    check(gainDb > 10.0, "CLAP process applies output gain");
   }
 
   plugin->stop_processing(plugin);

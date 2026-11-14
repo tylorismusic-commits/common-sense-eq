@@ -544,6 +544,36 @@ public:
   }
 
   // -------------------------------------------------------------------------
+  // Audio ports extension (required for the host to route audio)
+  // -------------------------------------------------------------------------
+  static uint32_t CLAP_ABI audioPortCount(const clap_plugin_t*, bool) {
+    return 1;
+  }
+
+  static bool CLAP_ABI audioPortInfo(const clap_plugin_t*, uint32_t index,
+                                     bool isInput,
+                                     clap_audio_port_info_t* info) {
+    if (!info || index != 0) {
+      return false;
+    }
+    std::memset(info, 0, sizeof(*info));
+    info->id = isInput ? 0 : 1;
+    info->flags = CLAP_AUDIO_PORT_IS_MAIN;
+    info->channel_count = 2;
+    info->port_type = CLAP_PORT_STEREO;
+    info->in_place_pair = isInput ? 1 : CLAP_INVALID_ID;
+    std::snprintf(info->name, sizeof(info->name), "%s",
+                  isInput ? "Input" : "Output");
+    return true;
+  }
+
+  static const clap_plugin_audio_ports_t& audioPortsExt() {
+    static const clap_plugin_audio_ports_t ext = {&audioPortCount,
+                                                   &audioPortInfo};
+    return ext;
+  }
+
+  // -------------------------------------------------------------------------
   // Params extension
   // -------------------------------------------------------------------------
   static uint32_t CLAP_ABI paramCount(const clap_plugin_t*) {
@@ -1053,6 +1083,9 @@ public:
     ClapPlugin* s = self(p);
     if (!s || !id) {
       return nullptr;
+    }
+    if (!std::strcmp(id, CLAP_EXT_AUDIO_PORTS)) {
+      return &audioPortsExt();
     }
     if (!std::strcmp(id, CLAP_EXT_PARAMS)) {
       return &paramsExt();
