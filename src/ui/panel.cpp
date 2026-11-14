@@ -1418,18 +1418,55 @@ bool Panel::wheel(UiState& state, double x, double y, double delta, bool fine,
   if (state.showDyn && bandHasGain(state.selectedBand)) {
     const Rect panel = dynPanelRect();
     if (panel.in(x, y)) {
+      const int row = dynRowAt(x, y);
+      if (row >= 0) {
+        static const BandSlot slots[5] = {kSlotDynThreshold, kSlotDynRatio,
+                                          kSlotDynRange, kSlotDynAttack,
+                                          kSlotDynRelease};
+        const uint32_t port = bandParam(state.selectedBand, slots[row]);
+        const ParamInfo* info = infoFor(port);
+        const double t = normalized(state.values[port], *info);
+        setValue(state, port,
+                 denormalized(t + delta * (fine ? 0.005 : 0.02), *info), set);
+        return true;
+      }
       return false;
     }
+  }
+
+  const double sens = fine ? 0.25 : 1.0;
+  const CellHit cell = cellAt(x, y);
+  if (cell.band >= 0) {
+    selectBand(state, cell.band);
+    if (cell.row == 0) {
+      const float f = state.values[bandParam(cell.band, kSlotFreq)];
+      setValue(state, bandParam(cell.band, kSlotFreq),
+               static_cast<float>(f * std::exp(delta * 0.04 * sens)), set);
+      return true;
+    }
+    if (cell.row == 1) {
+      if (bandIsCut(cell.band)) {
+        return false;
+      }
+      const float g = state.values[bandParam(cell.band, kSlotGain)];
+      setValue(state, bandParam(cell.band, kSlotGain),
+               static_cast<float>(g + delta * 0.5 * sens), set);
+      return true;
+    }
+    const float q = state.values[bandParam(cell.band, kSlotQ)];
+    setValue(state, bandParam(cell.band, kSlotQ),
+             static_cast<float>(q * std::exp(delta * 0.08 * sens)), set);
+    return true;
+  }
+
+  if (x < kGraphX || x > kGraphRight || y < kGraphY || y > kGraphY + kGraphH) {
+    return false;
   }
   const int band = nearestBand(state, x, y);
   const int target = band >= 0 ? band : state.selectedBand;
   if (!bandHasGain(target)) {
     return false;
   }
-  if (x < kGraphX || x > kGraphRight || y < kGraphY || y > kBottomY + kBottomH) {
-    return false;
-  }
-  const double sens = fine ? 0.25 : 1.0;
   const float q = state.values[bandParam(target, kSlotQ)];
   setValue(state, bandParam(target, kSlotQ),
            static_cast<float>(q * std::exp(delta * 0.08 * sens)), set);
