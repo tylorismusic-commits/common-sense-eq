@@ -4,3 +4,5 @@ build*/
 *.clap
 *.png
 !docs/*.png
+
+dist/
