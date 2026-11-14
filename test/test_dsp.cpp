@@ -155,6 +155,50 @@ int main() {
           "dynamic band releases on silence");
   }
 
+  // Dynamic gain actually changes the audio, not just the meter.
+  {
+    auto runLevel = [](bool dynamic) {
+      cse::Strip strip;
+      cse::Params p = flatParams();
+      const int band = 4;
+      p.bands[band].on = true;
+      p.bands[band].freq = 1500.0f;
+      p.bands[band].gainDb = 6.0f;
+      p.bands[band].q = 1.2f;
+      p.bands[band].dynOn = dynamic;
+      p.bands[band].dynThresholdDb = -30.0f;
+      p.bands[band].dynRatio = 6.0f;
+      p.bands[band].dynAttackMs = 1.0f;
+      p.bands[band].dynReleaseMs = 100.0f;
+      p.bands[band].dynRangeDb = 9.0f;
+      strip.prepare(48000.0f);
+      strip.setTargets(p);
+      strip.reset();
+      std::vector<float> l(512), r(512);
+      double sum = 0.0;
+      for (int block = 0; block < 120; ++block) {
+        for (int i = 0; i < 512; ++i) {
+          l[i] = r[i] = static_cast<float>(
+              0.5 * std::sin(2.0 * M_PI * 1500.0 *
+                             (block * 512 + i) / 48000.0));
+        }
+        strip.process(l.data(), r.data(), 512);
+        if (block > 60) {
+          for (int i = 0; i < 512; ++i) {
+            sum += l[i] * l[i];
+          }
+        }
+      }
+      return 10.0 * std::log10(sum / (59.0 * 512.0) + 1.0e-12);
+    };
+    const double staticLevel = runLevel(false);
+    const double dynamicLevel = runLevel(true);
+    std::printf("dynamic audio: static %.2f dB, dynamic %.2f dB\n",
+                staticLevel, dynamicLevel);
+    check(staticLevel - dynamicLevel > 1.0,
+          "dynamic band reduces the audio level");
+  }
+
   // Extreme settings stay finite.
   {
     cse::Strip strip;

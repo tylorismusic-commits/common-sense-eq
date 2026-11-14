@@ -195,7 +195,7 @@
 			lv2:symbol "low_cut_dyn_threshold" ;
 			lv2:name "Low Cut Threshold" ;
 			pg:group <https://github.com/tylorismusic-commits/common-sense-eq#band1> ;
-			lv2:default -24 ;
+			lv2:default -30 ;
 			lv2:minimum -60 ;
 			lv2:maximum 0 ;
 			units:unit units:db ;
@@ -333,7 +333,7 @@
 			lv2:symbol "low_shelf_dyn_threshold" ;
 			lv2:name "Low Shelf Threshold" ;
 			pg:group <https://github.com/tylorismusic-commits/common-sense-eq#band2> ;
-			lv2:default -24 ;
+			lv2:default -30 ;
 			lv2:minimum -60 ;
 			lv2:maximum 0 ;
 			units:unit units:db ;
@@ -471,7 +471,7 @@
 			lv2:symbol "bell1_dyn_threshold" ;
 			lv2:name "Bell 1 Threshold" ;
 			pg:group <https://github.com/tylorismusic-commits/common-sense-eq#band3> ;
-			lv2:default -24 ;
+			lv2:default -30 ;
 			lv2:minimum -60 ;
 			lv2:maximum 0 ;
 			units:unit units:db ;
@@ -609,7 +609,7 @@
 			lv2:symbol "bell2_dyn_threshold" ;
 			lv2:name "Bell 2 Threshold" ;
 			pg:group <https://github.com/tylorismusic-commits/common-sense-eq#band4> ;
-			lv2:default -24 ;
+			lv2:default -30 ;
 			lv2:minimum -60 ;
 			lv2:maximum 0 ;
 			units:unit units:db ;
@@ -747,7 +747,7 @@
 			lv2:symbol "bell3_dyn_threshold" ;
 			lv2:name "Bell 3 Threshold" ;
 			pg:group <https://github.com/tylorismusic-commits/common-sense-eq#band5> ;
-			lv2:default -24 ;
+			lv2:default -30 ;
 			lv2:minimum -60 ;
 			lv2:maximum 0 ;
 			units:unit units:db ;
@@ -885,7 +885,7 @@
 			lv2:symbol "bell4_dyn_threshold" ;
 			lv2:name "Bell 4 Threshold" ;
 			pg:group <https://github.com/tylorismusic-commits/common-sense-eq#band6> ;
-			lv2:default -24 ;
+			lv2:default -30 ;
 			lv2:minimum -60 ;
 			lv2:maximum 0 ;
 			units:unit units:db ;
@@ -1023,7 +1023,7 @@
 			lv2:symbol "high_shelf_dyn_threshold" ;
 			lv2:name "High Shelf Threshold" ;
 			pg:group <https://github.com/tylorismusic-commits/common-sense-eq#band7> ;
-			lv2:default -24 ;
+			lv2:default -30 ;
 			lv2:minimum -60 ;
 			lv2:maximum 0 ;
 			units:unit units:db ;
@@ -1161,7 +1161,7 @@
 			lv2:symbol "high_cut_dyn_threshold" ;
 			lv2:name "High Cut Threshold" ;
 			pg:group <https://github.com/tylorismusic-commits/common-sense-eq#band8> ;
-			lv2:default -24 ;
+			lv2:default -30 ;
 			lv2:minimum -60 ;
 			lv2:maximum 0 ;
 			units:unit units:db ;

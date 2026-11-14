@@ -236,7 +236,7 @@ public:
       return;
     }
 
-    if (snap.hasSpectrum && roomForGrid) {
+    if (snap.hasSpectrum) {
       float prevX = 0.0f;
       float prevY = 0.0f;
       for (int i = 0; i < 32; ++i) {
@@ -247,7 +247,7 @@ public:
         const float y = r.bottom - level * (r.bottom - r.top);
         if (i > 0) {
           line(pixels, width, height, rowSpan, prevX, prevY, x, y,
-               argb(128, 148, 172), 0.35f);
+               argb(170, 188, 214), 0.62f);
         }
         prevX = x;
         prevY = y;
@@ -324,6 +324,24 @@ public:
       drawCurve(pixels, width, height, rowSpan, snap, r, false);
     }
     drawCurve(pixels, width, height, rowSpan, snap, r, true);
+
+    // A compact reduction meter along the bottom edge.
+    float maxReduction = 0.0f;
+    for (int b = 0; b < 8; ++b) {
+      if (snap.params.bands[b].dynOn) {
+        maxReduction = std::max(maxReduction, std::fabs(snap.dynDb[b]));
+      }
+    }
+    if (maxReduction > 0.05f) {
+      const int meterW = static_cast<int>(
+          std::lround((std::min(maxReduction, 24.0f) / 24.0f) *
+                      (r.right - r.left)));
+      if (meterW > 1) {
+        fillRect(pixels, width, height, rowSpan, static_cast<int>(r.left),
+                 height - 3, static_cast<int>(r.left) + meterW, height - 1,
+                 argb(220, 168, 90), 0.9f);
+      }
+    }
 
     // Band handles.
     if (width >= 90 && height >= 26) {

@@ -56,7 +56,7 @@ SLOTS = [
     ("q", "Q", 0.1, 25, None, None, "log", None),
     ("slope", "Slope", 12, 24, None, None, "enum", [("12", 12), ("24", 24)]),
     ("dyn_on", "Dynamic", 0, 1, 0, None, "toggle", None),
-    ("dyn_threshold", "Threshold", -60, 0, -24, "db", "float", None),
+    ("dyn_threshold", "Threshold", -60, 0, -30, "db", "float", None),
     ("dyn_ratio", "Ratio", 1, 20, 4, None, "float", None),
     ("dyn_attack", "Attack", 0.1, 100, 10, "ms", "log", None),
     ("dyn_release", "Release", 10, 2000, 150, "ms", "log", None),

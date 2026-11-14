@@ -296,39 +296,43 @@ CellHit cellAt(double x, double y) {
   return {clamp(band, 0, 7), clamp(row, 0, 2)};
 }
 
-constexpr double kDynX = 700.0;
-constexpr double kDynY = 104.0;
-constexpr double kDynW = 372.0;
-constexpr double kDynH = 138.0;
+constexpr double kDynX = 688.0;
+constexpr double kDynY = 94.0;
+constexpr double kDynW = 384.0;
+constexpr double kDynH = 168.0;
+constexpr double kDynRowGap = 34.0;
+constexpr double kDynRowTop = 42.0;
 
 int dynRowAt(double x, double y) {
   if (!(x >= kDynX && x <= kDynX + kDynW && y >= kDynY &&
         y <= kDynY + kDynH)) {
     return -1;
   }
-  if (y < kDynY + 32.0) {
+  if (y < kDynY + 34.0) {
     return -2; // header
   }
-  if (x < kDynX + 180.0) {
-    const int row = static_cast<int>((y - (kDynY + 40.0)) / 28.0);
-    return (row >= 0 && row <= 2) ? row : -1;
+  int row = static_cast<int>((y - (kDynY + kDynRowTop)) / kDynRowGap);
+  row = clamp(row, 0, 2);
+  if (x >= kDynX + 196.0) {
+    if (row == 0) return 3; // Attack
+    if (row == 1) return 4; // Release
+    return 5;               // GR meter (not editable)
   }
-  const int row = static_cast<int>((y - (kDynY + 40.0)) / 28.0);
-  if (row == 0) return 3;
-  if (row == 1) return 4;
-  return -1;
+  return row;
 }
 
 Rect dynPanelRect() { return {kDynX, kDynY, kDynW, kDynH}; }
 Rect dynTrackRect(int row) {
   if (row < 3) {
-    return {kDynX + 92.0, kDynY + 44.0 + row * 28.0, 64.0, 9.0};
+    return {kDynX + 12.0, kDynY + kDynRowTop + row * kDynRowGap + 16.0,
+            162.0, 8.0};
   }
-  return {kDynX + 268.0, kDynY + 44.0 + (row - 3) * 28.0, 64.0, 9.0};
+  return {kDynX + 204.0,
+          kDynY + kDynRowTop + (row - 3) * kDynRowGap + 16.0, 162.0, 8.0};
 }
-Rect dynCloseRect() { return {kDynX + 334.0, kDynY + 8.0, 22.0, 22.0}; }
-Rect dynOnRect() { return {kDynX + 238.0, kDynY + 8.0, 48.0, 22.0}; }
-Rect dynModeRect() { return {kDynX + 154.0, kDynY + 8.0, 76.0, 22.0}; }
+Rect dynCloseRect() { return {kDynX + 346.0, kDynY + 8.0, 22.0, 22.0}; }
+Rect dynOnRect() { return {kDynX + 282.0, kDynY + 8.0, 48.0, 22.0}; }
+Rect dynModeRect() { return {kDynX + 200.0, kDynY + 8.0, 74.0, 22.0}; }
 
 double normalized(float value, const ParamInfo& info) {
   if (info.logarithmic) {
@@ -750,8 +754,8 @@ void Panel::drawGraph(cairo_t* cr, UiState& state) {
     cairo_close_path(cr);
     cairo_pattern_t* spec = cairo_pattern_create_linear(0, kGraphY, 0,
                                                         kGraphBottom);
-    cairo_pattern_add_color_stop_rgba(spec, 0.0, 0.55, 0.63, 0.74, 0.30);
-    cairo_pattern_add_color_stop_rgba(spec, 1.0, 0.55, 0.63, 0.74, 0.04);
+    cairo_pattern_add_color_stop_rgba(spec, 0.0, 0.66, 0.74, 0.86, 0.46);
+    cairo_pattern_add_color_stop_rgba(spec, 1.0, 0.55, 0.63, 0.74, 0.07);
     cairo_set_source(cr, spec);
     cairo_fill(cr);
     cairo_pattern_destroy(spec);
@@ -770,8 +774,8 @@ void Panel::drawGraph(cairo_t* cr, UiState& state) {
         cairo_line_to(cr, x, y);
       }
     }
-    setColor(cr, Rgb{0.62, 0.70, 0.80}, 0.45);
-    cairo_set_line_width(cr, 1.0);
+    setColor(cr, Rgb{0.72, 0.80, 0.92}, 0.85);
+    cairo_set_line_width(cr, 1.3);
     cairo_stroke(cr);
   }
 
@@ -1016,6 +1020,28 @@ void Panel::drawBottom(cairo_t* cr, UiState& state) {
              kBottomY + 61.0, 9.0, false, c, kCenter, alpha);
     }
   }
+  // Live dynamic-reduction bars at the right edge of each band column.
+  for (int b = 0; b < 8; ++b) {
+    if (!bandHasGain(b) ||
+        state.values[bandParam(b, kSlotOn)] <= 0.5f ||
+        state.values[bandParam(b, kSlotDynOn)] <= 0.5f) {
+      continue;
+    }
+    const double x = kGraphX + b * colW;
+    const double barX = x + colW - 6.0;
+    const double top = kBottomY + 7.0;
+    const double h = kBottomH - 14.0;
+    setColor(cr, Rgb{0.04, 0.055, 0.075}, 1.0);
+    roundedRect(cr, barX, top, 3.0, h, 1.5);
+    cairo_fill(cr);
+    const double amount =
+        std::min(1.0, std::fabs(state.dyn[b]) / 24.0);
+    if (amount > 0.001) {
+      setColor(cr, kAmber, 0.9);
+      roundedRect(cr, barX, top + h * (1.0 - amount), 3.0, h * amount, 1.5);
+      cairo_fill(cr);
+    }
+  }
   setColor(cr, kLine, 0.7);
   cairo_set_line_width(cr, 1.0);
   cairo_move_to(cr, 0, kBottomY + 0.5);
@@ -1080,13 +1106,13 @@ void Panel::drawDynPanel(cairo_t* cr, UiState& state) {
   const int band = state.selectedBand;
   const Rect r = dynPanelRect();
   cairo_save(cr);
-  roundedRect(cr, r.x + 3.0, r.y + 4.0, r.w, r.h, 7.0);
-  setColor(cr, Rgb{0, 0, 0}, 0.28);
+  roundedRect(cr, r.x + 3.0, r.y + 4.0, r.w, r.h, 8.0);
+  setColor(cr, Rgb{0, 0, 0}, 0.3);
   cairo_fill(cr);
-  roundedRect(cr, r.x, r.y, r.w, r.h, 7.0);
-  setColor(cr, Rgb{0.070, 0.096, 0.136}, 0.98);
+  roundedRect(cr, r.x, r.y, r.w, r.h, 8.0);
+  setColor(cr, Rgb{0.068, 0.094, 0.134}, 0.985);
   cairo_fill_preserve(cr);
-  setColor(cr, kAmber, 0.5);
+  setColor(cr, kAmber, 0.55);
   cairo_set_line_width(cr, 1.0);
   cairo_stroke(cr);
 
@@ -1094,17 +1120,17 @@ void Panel::drawDynPanel(cairo_t* cr, UiState& state) {
   char bandName[24];
   dynamicBandName(band, bandName, sizeof(bandName));
   std::snprintf(title, sizeof(title), "DYNAMICS  .  %s", bandName);
-  textAt(cr, title, r.x + 12.0, r.y + 23.0, 9.0, true, kAmber);
+  textAt(cr, title, r.x + 14.0, r.y + 23.0, 9.0, true, kAmber);
 
   const bool dynOn = state.values[bandParam(band, kSlotDynOn)] > 0.5f;
   const bool up = state.values[bandParam(band, kSlotDynMode)] > 0.5f;
   chip(cr, dynModeRect().x, dynModeRect().y, dynModeRect().w,
        dynModeRect().h, false);
   textAt(cr, up ? "UP" : "DOWN", dynModeRect().x + dynModeRect().w * 0.5,
-         dynModeRect().y + 15.0, 8.0, true, up ? kAmber : kMuted, kCenter);
+         dynModeRect().y + 15.0, 8.5, true, up ? kAmber : kMuted, kCenter);
   chip(cr, dynOnRect().x, dynOnRect().y, dynOnRect().w, dynOnRect().h, dynOn);
   textAt(cr, dynOn ? "ON" : "OFF", dynOnRect().x + dynOnRect().w * 0.5,
-         dynOnRect().y + 15.0, 8.0, true, dynOn ? kAccent : kMuted, kCenter);
+         dynOnRect().y + 15.0, 8.5, true, dynOn ? kAccent : kMuted, kCenter);
   textAt(cr, "x", dynCloseRect().x + 11.0, dynCloseRect().y + 16.0, 12.0,
          false, kMuted, kCenter);
 
@@ -1118,22 +1144,10 @@ void Panel::drawDynPanel(cairo_t* cr, UiState& state) {
     const ParamInfo* info = infoFor(port);
     const Rect track = dynTrackRect(i);
     const bool right = i >= 3;
-    const double labelX = right ? kDynX + 188.0 : kDynX + 12.0;
-    const double valueX = right ? kDynX + 360.0 : kDynX + 172.0;
-    const double y = track.y;
-    textAt(cr, labels[i], labelX, y + 8.5, 8.5, false, dynOn ? kMuted : kDim);
-    setColor(cr, Rgb{0.035, 0.047, 0.067}, 1.0);
-    roundedRect(cr, track.x, track.y, track.w, track.h, 4.0);
-    cairo_fill(cr);
-    const double t = normalized(state.values[port], *info);
-    setColor(cr, kAmber, dynOn ? (0.35 + 0.4 * t) : 0.18);
-    roundedRect(cr, track.x, track.y, std::max(4.0, track.w * t), track.h,
-                4.0);
-    cairo_fill(cr);
-    cairo_arc(cr, track.x + track.w * t, track.y + track.h * 0.5, 4.0, 0.0,
-              M_PI * 2.0);
-    setColor(cr, kAmber, dynOn ? 1.0 : 0.35);
-    cairo_fill(cr);
+    const double textX = right ? kDynX + 204.0 : kDynX + 12.0;
+    const double valueX = right ? kDynX + 358.0 : kDynX + 166.0;
+    const double labelY = track.y - 7.0;
+    textAt(cr, labels[i], textX, labelY, 8.5, false, dynOn ? kMuted : kDim);
     std::string valueText;
     switch (slots[i]) {
       case kSlotDynThreshold:
@@ -1147,11 +1161,53 @@ void Panel::drawDynPanel(cairo_t* cr, UiState& state) {
         valueText = fmtMs(state.values[port]);
         break;
     }
-    textAt(cr, valueText.c_str(), valueX, y + 8.5, 8.0, true,
+    textAt(cr, valueText.c_str(), valueX, labelY, 8.0, true,
            dynOn ? kText : kDim, kRight);
+
+    setColor(cr, Rgb{0.030, 0.041, 0.058}, 1.0);
+    roundedRect(cr, track.x, track.y, track.w, track.h, 4.0);
+    cairo_fill(cr);
+    const double t = normalized(state.values[port], *info);
+    setColor(cr, kAmber, dynOn ? 0.75 : 0.16);
+    roundedRect(cr, track.x, track.y, std::max(4.0, track.w * t), track.h,
+                4.0);
+    cairo_fill(cr);
+    cairo_arc(cr, track.x + track.w * t, track.y + track.h * 0.5, 4.5, 0.0,
+              M_PI * 2.0);
+    setColor(cr, kAmber, dynOn ? 1.0 : 0.32);
+    cairo_fill(cr);
   }
-  textAt(cr, "drag a value, or drag the handles in the graph", r.x + 12.0,
-         r.y + r.h - 8.0, 7.0, false, kDim);
+
+  // Live reduction meter in the right-hand third row.
+  {
+    const Rect track = dynTrackRect(5);
+    const double dyn = state.dyn[band];
+    const double range = std::max(
+        0.1f, state.values[bandParam(band, kSlotDynRange)]);
+    const double t = std::min(1.0, std::fabs(dyn) / range);
+    textAt(cr, "Reduction", kDynX + 204.0, track.y - 7.0, 8.5, false,
+           dynOn ? kMuted : kDim);
+    textAt(cr, fmtDb(static_cast<float>(dyn)).c_str(), kDynX + 358.0,
+           track.y - 7.0, 8.0, true, dynOn ? kAmber : kDim, kRight);
+    setColor(cr, Rgb{0.030, 0.041, 0.058}, 1.0);
+    roundedRect(cr, track.x, track.y, track.w, track.h, 4.0);
+    cairo_fill(cr);
+    if (t > 0.001) {
+      setColor(cr, kAmber, dynOn ? 0.9 : 0.25);
+      roundedRect(cr, track.x, track.y, std::max(3.0, track.w * t), track.h,
+                  4.0);
+      cairo_fill(cr);
+    }
+    for (int i = 1; i < 4; ++i) {
+      const double x = track.x + track.w * i / 4.0;
+      setColor(cr, Rgb{0.03, 0.04, 0.06}, 0.8);
+      cairo_rectangle(cr, x, track.y, 1.0, track.h);
+      cairo_fill(cr);
+    }
+  }
+
+  textAt(cr, "drag a value, or drag the handles in the graph", r.x + 14.0,
+         r.y + r.h - 9.0, 7.0, false, kDim);
   cairo_restore(cr);
 }
 
@@ -1243,6 +1299,9 @@ bool Panel::pointerDown(UiState& state, double x, double y, bool fine,
         return true;
       }
       const int row = dynRowAt(x, y);
+      if (row == 5) {
+        return true;
+      }
       if (row >= 0) {
         static const BandSlot slots[5] = {kSlotDynThreshold, kSlotDynRatio,
                                           kSlotDynRange, kSlotDynAttack,
@@ -1419,6 +1478,9 @@ bool Panel::wheel(UiState& state, double x, double y, double delta, bool fine,
     const Rect panel = dynPanelRect();
     if (panel.in(x, y)) {
       const int row = dynRowAt(x, y);
+      if (row == 5) {
+        return true;
+      }
       if (row >= 0) {
         static const BandSlot slots[5] = {kSlotDynThreshold, kSlotDynRatio,
                                           kSlotDynRange, kSlotDynAttack,

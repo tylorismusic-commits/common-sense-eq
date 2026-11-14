@@ -163,7 +163,7 @@ if(CSE_XTST_LIBRARY)
   target_compile_definitions(common_sense_eq_clap_host_test PRIVATE
     CSE_HAVE_XTEST)
   target_link_libraries(common_sense_eq_clap_host_test PRIVATE
-    PkgConfig::X11 ${CSE_XTST_LIBRARY})
+    PkgConfig::X11 PkgConfig::CAIRO ${CSE_XTST_LIBRARY})
 endif()
 add_dependencies(common_sense_eq_clap_host_test common_sense_eq_clap_bundle)
 add_test(NAME common_sense_eq_clap_host

@@ -30,7 +30,9 @@ included.
 - **Dynamic bands** — every shelf and bell can follow the programme with
   threshold, ratio, attack, release, and range controls. The applied curve,
   the set curve, the reduction ribbon, and the threshold line are all visible.
-  Dynamics can attenuate (the default) or lift (UP mode).
+  A live reduction meter sits in the dynamics panel, each dynamic band column
+  shows a GR bar, and both inline views draw the reduction amount. Dynamics
+  can attenuate (the default) or lift (UP mode).
 - **Analyzer** — 2048-point FFT with PRE/POST taps and a 32-band log display.
 - **Q-Couple** — Q follows the band gain when enabled, like the original.
 - **Processing modes** — Stereo, Mono, Left, and Right.

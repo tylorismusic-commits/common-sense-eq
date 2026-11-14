@@ -11,6 +11,7 @@
 #ifdef CSE_HAVE_XTEST
 #include <X11/Xlib.h>
 #include <X11/extensions/XTest.h>
+#include <cairo/cairo-xlib.h>
 #endif
 
 #include <clap/clap.h>
@@ -255,7 +256,49 @@ int main(int argc, char** argv) {
         window.x11 = parent;
         check(gui->set_parent(plugin, &window), "GUI set parent");
         check(gui->show(plugin), "GUI show");
-        usleep(400000);
+        usleep(300000);
+
+        // Feed a 1 kHz tone so the analyzer and the dynamic display have
+        // something to draw, then capture the embedded editor.
+        for (int block = 0; block < 48; ++block) {
+          for (int i = 0; i < 512; ++i) {
+            const double t = (block * 512 + i) / 48000.0;
+            inL[i] = inR[i] = static_cast<float>(0.5 * std::sin(2.0 * M_PI * 1000.0 * t));
+          }
+          plugin->process(plugin, &process);
+        }
+        usleep(500000);
+        Window root = 0;
+        Window parentWindow = 0;
+        Window* children = nullptr;
+        unsigned int childCount = 0;
+        Window uiWindow = parent;
+        if (XQueryTree(display, parent, &root, &parentWindow, &children,
+                       &childCount) &&
+            childCount > 0) {
+          uiWindow = children[childCount - 1];
+        }
+        if (children) {
+          XFree(children);
+        }
+        XWindowAttributes childAttributes{};
+        if (XGetWindowAttributes(display, uiWindow, &childAttributes) &&
+            childAttributes.width > 0) {
+          cairo_surface_t* source = cairo_xlib_surface_create(
+              display, uiWindow, DefaultVisual(display, 0),
+              childAttributes.width, childAttributes.height);
+          cairo_surface_t* image = cairo_image_surface_create(
+              CAIRO_FORMAT_ARGB32, childAttributes.width,
+              childAttributes.height);
+          cairo_t* cr = cairo_create(image);
+          cairo_set_source_surface(cr, source, 0.0, 0.0);
+          cairo_paint(cr);
+          cairo_destroy(cr);
+          cairo_surface_write_to_png(image, "/tmp/cse-clap-ui.png");
+          cairo_surface_destroy(image);
+          cairo_surface_destroy(source);
+        }
+
         gOutEventCount = 0;
         XTestFakeMotionEvent(display, -1, 32, 27, CurrentTime);
         XTestFakeButtonEvent(display, Button1, True, CurrentTime);
