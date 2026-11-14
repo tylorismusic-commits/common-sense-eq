@@ -55,7 +55,9 @@ included.
 | CLAP | `CommonSenseEQ.clap` + `CommonSenseEQ.resources/` | REAPER, Bitwig, Qtractor, any CLAP host |
 
 The LV2 build carries the inline display. The CLAP build carries the REAPER
-embedded UI. The editor runs inside both hosts:
+embedded UI. The editor was checked in REAPER 7.84 on Linux; the LV2 bundle and
+inline-display extension are covered by the host tests and use the same
+Harrison extension as Ardour's own a-eq:
 
 ![Common Sense EQ in REAPER](docs/reaper.png)
 
@@ -85,6 +87,15 @@ cmake --install build --prefix "$HOME/.local"
 ```
 
 or copy the two bundles into `~/.lv2/` and `~/.clap/`.
+
+The parameter table and LV2 metadata are generated from one source:
+
+```sh
+python3 tools/gen_params.py
+```
+
+This rewrites `src/cse/param_info.hpp`, `lv2/common-sense-eq.ttl`, and
+`lv2/manifest.ttl`; commit the results.
 
 Offline previews:
 
@@ -119,6 +130,7 @@ MCP**. In the embedded view:
 | Click the small **D** badge | Toggle that band's dynamics and open the panel |
 | Drag a node | Frequency and gain |
 | Wheel over the graph | Q of the nearest band |
+| Wheel over a bottom value | Frequency, gain, or Q |
 | Shift-drag / Shift-wheel | Fine adjustment |
 | Double-click a node | Reset gain (or frequency for cuts) |
 | Right-click near a band | Select it and open its dynamics |
