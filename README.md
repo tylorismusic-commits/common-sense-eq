@@ -1,6 +1,8 @@
 # Common Sense EQ
 
-**Version 0.1.0** · GPL-3.0-or-later
+[![build](https://github.com/tylorismusic-commits/common-sense-eq/actions/workflows/build.yml/badge.svg)](https://github.com/tylorismusic-commits/common-sense-eq/actions/workflows/build.yml)
+
+**Version 0.1.0** · [GitHub](https://github.com/tylorismusic-commits/common-sense-eq) · GPL-3.0-or-later
 
 **Common Sense EQ** is a free, open-source 8-band channel EQ for Linux with
 dynamic bands, a spectrum analyzer, and EQ curves in the mixer strip of Ardour
@@ -64,6 +66,10 @@ Harrison extension as Ardour's own a-eq:
 ![Common Sense EQ in REAPER](docs/reaper.png)
 
 ## Building
+
+Prebuilt Linux x86-64 bundles are attached to the
+[releases](https://github.com/tylorismusic-commits/common-sense-eq/releases);
+building from source is recommended on other distributions.
 
 Requires CMake 3.16+, a C++17 compiler, and the LV2, Cairo, and X11 development
 packages. Lilv is optional and only used by the host test.
