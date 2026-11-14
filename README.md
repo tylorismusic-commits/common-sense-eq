@@ -86,7 +86,14 @@ Install to the standard user locations:
 cmake --install build --prefix "$HOME/.local"
 ```
 
-or copy the two bundles into `~/.lv2/` and `~/.clap/`.
+or copy the two bundles into the per-user directories:
+
+```sh
+mkdir -p ~/.lv2 ~/.clap
+cp -r build/lv2/common-sense-eq.lv2 ~/.lv2/
+cp -r build/clap/CommonSenseEQ.clap \
+      build/clap/CommonSenseEQ.resources ~/.clap/
+```
 
 The parameter table and LV2 metadata are generated from one source:
 
