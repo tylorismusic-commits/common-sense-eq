@@ -208,7 +208,7 @@ public:
         "https://github.com/tylorismusic-commits/common-sense-eq",
         "",
         "https://github.com/tylorismusic-commits/common-sense-eq/issues",
-        "0.1.0",
+        "0.1.1",
         "Eight-band channel EQ with dynamic bands, an analyzer, and inline "
         "mixer-strip displays.",
         features};

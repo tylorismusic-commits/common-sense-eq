@@ -146,6 +146,29 @@ int main(int argc, char** argv) {
   }
   XSync(display, False);
 
+  // Power button: the shared Comp Suite glyph at 32,27 toggles Enabled off
+  // and back on, and the UI must send the parameter to the host.
+  click(display, 32, 27);
+  for (int i = 0; i < 4; ++i) {
+    idle->idle(handle);
+    usleep(12000);
+  }
+  if (g_lastPort != cse::PORT_ENABLE || std::fabs(g_lastValue - 0.0f) > 1e-6f) {
+    std::printf("FAIL: power click did not disable (port %u, value %.3f)\n",
+                g_lastPort, g_lastValue);
+    return 1;
+  }
+  click(display, 32, 27);
+  for (int i = 0; i < 4; ++i) {
+    idle->idle(handle);
+    usleep(12000);
+  }
+  if (g_lastPort != cse::PORT_ENABLE || std::fabs(g_lastValue - 1.0f) > 1e-6f) {
+    std::printf("FAIL: power click did not re-enable (port %u, value %.3f)\n",
+                g_lastPort, g_lastValue);
+    return 1;
+  }
+
   const int before = g_writes;
   click(display, 370, 27);           // next preset
   click(display, 944, 27);           // open dynamics panel

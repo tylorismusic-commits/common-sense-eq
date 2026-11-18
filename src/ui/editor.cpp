@@ -234,13 +234,15 @@ void onButtonPress(X11UI* ui, XButtonEvent& ev) {
   ui->lastClickX = ev.x;
   ui->lastClickY = ev.y;
 
-  if (doubleClick) {
-    if (ui->panel.doubleClick(ui->state, x, y,
-                              [ui](uint32_t port, float value) {
-                                sendValue(ui, port, value);
-                              })) {
-      ui->dirty = true;
-    }
+  // Only swallow the second click when it actually performed a reset.  The
+  // power button and the other chips are not resettable, so a quick second
+  // click there must toggle them again instead of doing nothing.
+  if (doubleClick &&
+      ui->panel.doubleClick(ui->state, x, y,
+                            [ui](uint32_t port, float value) {
+                              sendValue(ui, port, value);
+                            })) {
+    ui->dirty = true;
     return;
   }
 

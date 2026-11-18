@@ -625,19 +625,19 @@ void Panel::drawTopBar(cairo_t* cr, UiState& state) {
   cairo_line_to(cr, kWidth, kTopH - 0.5);
   cairo_stroke(cr);
 
-  // Power.
+  // Power.  This is the same button as Comp Suite, Patina and the rest of the
+  // suite: a dark disc with the green power glyph and a top-centred gap.
   const bool on = state.values[PORT_ENABLE] > 0.5f;
-  cairo_arc(cr, 32.0, 27.0, 14.0, 0.0, M_PI * 2.0);
-  setColor(cr, on ? kAccent : kDim, 0.12);
-  cairo_fill_preserve(cr);
-  setColor(cr, on ? kAccent : kDim, 0.9);
-  cairo_set_line_width(cr, 1.2);
+  cairo_arc(cr, 32.0, 27.0, 14.0, 0.0, 2.0 * M_PI);
+  setColor(cr, Rgb{0.12, 0.12, 0.12});
+  cairo_fill(cr);
+  setColor(cr, on ? Rgb{0.36, 0.86, 0.46} : Rgb{0.42, 0.42, 0.42});
+  cairo_set_line_width(cr, 2.2);
+  cairo_new_path(cr);
+  cairo_arc(cr, 32.0, 27.0, 7.0, -M_PI / 2.0 + 0.6,
+            -M_PI / 2.0 + 2.0 * M_PI - 0.6);
   cairo_stroke(cr);
-  setColor(cr, on ? kAccent : kMuted, 1.0);
-  cairo_set_line_width(cr, 1.6);
-  cairo_arc(cr, 32.0, 27.5, 6.2, -M_PI * 0.75, M_PI * 0.75);
-  cairo_stroke(cr);
-  cairo_move_to(cr, 32.0, 20.0);
+  cairo_move_to(cr, 32.0, 18.0);
   cairo_line_to(cr, 32.0, 26.0);
   cairo_stroke(cr);
 

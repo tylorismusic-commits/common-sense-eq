@@ -312,6 +312,50 @@ int main() {
           "inline renderer rejects tiny surfaces");
   }
 
+
+  // Power off is a true bypass: no EQ, no output trim, sample-exact.
+  {
+    cse::Strip strip;
+    cse::Params p = flatParams();
+    p.enabled = false;
+    p.outputGainDb = 6.0f;
+    p.bands[3].on = true;
+    p.bands[3].freq = 1000.0f;
+    p.bands[3].gainDb = 12.0f;
+    p.bands[3].q = 1.0f;
+    std::vector<float> l(512), r(512);
+    for (int i = 0; i < 512; ++i) {
+      l[i] = 0.25f * std::sin(i * 0.03f);
+      r[i] = -0.15f * std::cos(i * 0.021f);
+    }
+    const std::vector<float> inL = l;
+    const std::vector<float> inR = r;
+    strip.prepare(48000.0f);
+    strip.setTargets(p);
+    strip.reset();
+    strip.process(l.data(), r.data(), 512);
+    float err = 0.0f;
+    for (int i = 0; i < 512; ++i) {
+      err = std::max(err, std::fabs(l[i] - inL[i]));
+      err = std::max(err, std::fabs(r[i] - inR[i]));
+    }
+    check(err == 0.0f, "power off bypasses the EQ and output trim exactly");
+
+    // The same state with power on must actually change the signal.
+    p.enabled = true;
+    strip.setTargets(p);
+    strip.reset();
+    l = inL;
+    r = inR;
+    strip.process(l.data(), r.data(), 512);
+    float diff = 0.0f;
+    for (int i = 0; i < 512; ++i) {
+      diff = std::max(diff, std::fabs(l[i] - inL[i]));
+      diff = std::max(diff, std::fabs(r[i] - inR[i]));
+    }
+    check(diff > 0.01f, "power on applies the EQ and output trim");
+  }
+
   if (failures == 0) {
     std::printf("all DSP tests passed\n");
     return 0;
