@@ -74,6 +74,12 @@ add_custom_target(common_sense_eq_ui_bundle ALL
           "${CMAKE_BINARY_DIR}/lv2/common-sense-eq.lv2/"
   DEPENDS common_sense_eq_ui)
 
+add_executable(common_sense_eq_preset_test test/test_presets.cpp src/ui/panel.cpp)
+cse_common(common_sense_eq_preset_test)
+target_link_libraries(common_sense_eq_preset_test PRIVATE
+  PkgConfig::CAIRO)
+add_test(NAME common_sense_eq_presets COMMAND common_sense_eq_preset_test)
+
 add_executable(common_sense_eq_ui_preview EXCLUDE_FROM_ALL ${CSE_SOURCES})
 cse_common(common_sense_eq_ui_preview)
 target_compile_definitions(common_sense_eq_ui_preview PRIVATE CSE_UI_PREVIEW)

@@ -191,10 +191,14 @@ UI messages, and a live X11 editor test under Xvfb.
 - No linear-phase mode (the second Logic reference). The band model and
   response code are engine-agnostic, so it can be added later.
 - Dynamics are available on shelves and bells, not on the low/high cuts.
-- No external sidechain, undo history, or user preset browser yet.
+- No external sidechain or undo history yet.
 - A/B state is per editor session and is not stored in the plugin state.
 - The embedded REAPER view supports node dragging, wheel Q, double-click reset,
   and right-click enable; it does not show a context menu.
+
+User presets are stored in `~/.config/CommonSenseEQ/presets` and can be
+exported to `~/Documents/Common Sense EQ Presets`; drag a preset file onto the
+panel to import it.
 
 ## License
 

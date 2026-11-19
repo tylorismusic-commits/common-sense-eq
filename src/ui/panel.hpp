@@ -5,9 +5,12 @@
 #include <cairo.h>
 
 #include <functional>
+#include <string>
+#include <vector>
 
 #include "cse/param_info.hpp"
 #include "dsp/params.hpp"
+#include "ui/user_presets.hpp"
 
 namespace cse {
 namespace ui {
@@ -42,6 +45,18 @@ struct UiState {
   bool showDyn = false;
   int presetIndex = 0;
   bool presetDirty = false;
+  bool presetOpen = false;
+  int presetScroll = 0;
+  bool savePreset = false;
+  bool renamePreset = false;
+  bool deletePresetConfirm = false;
+  bool presetOverwriteConfirm = false;
+  std::string presetText;
+  bool presetTextFresh = false;
+  std::string presetError;
+  std::string presetNotice;
+  double presetNoticeUntil = 0.0;
+  std::vector<UserPreset> userPresets;
   int abSlot = 0;
   bool abInit[2] = {false, false};
   float abValues[2][PORT_COUNT] = {};
@@ -66,6 +81,9 @@ public:
              const Setter& set);
   bool doubleClick(UiState& state, double x, double y, const Setter& set);
   bool rightClick(UiState& state, double x, double y);
+  bool key(UiState& state, int key, const char* text, const Setter& set);
+  bool importDroppedFile(UiState& state, const std::string& path,
+                         const Setter& set);
 
   bool dragging() const { return drag_ != Drag::Idle; }
   void setHover(double x, double y) {
@@ -94,6 +112,19 @@ private:
   void drawBottom(cairo_t* cr, UiState& state);
   void drawFooter(cairo_t* cr, UiState& state);
   void drawDynPanel(cairo_t* cr, UiState& state);
+  void drawPresetPopup(cairo_t* cr, UiState& state);
+  int presetTotal(const UiState& state) const;
+  const char* presetName(const UiState& state, int index) const;
+  const char* presetCategory(const UiState& state, int index) const;
+  std::vector<int> presetOrder(const UiState& state) const;
+  void reloadUserPresets(UiState& state);
+  void rescanUserPresets(UiState& state);
+  void setPresetNotice(UiState& state, const std::string& text) const;
+  void duplicatePreset(UiState& state, const Setter& set);
+  void exportPreset(UiState& state);
+  bool importPresetFile(UiState& state, const std::string& path,
+                        const Setter& set);
+  bool commitPresetName(UiState& state, const Setter& set);
   void drawNode(cairo_t* cr, int band, double x, double y, bool selected);
   void drawBandIcon(cairo_t* cr, int band, double cx, double cy, bool on,
                     bool selected, bool dynOn);

@@ -12,6 +12,7 @@
 #include <cairo/cairo-xlib.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/keysym.h>
 
 #include <lv2/atom/atom.h>
 #include <lv2/options/options.h>
@@ -20,6 +21,7 @@
 
 #include "cse/param_info.hpp"
 #include "ui/panel.hpp"
+#include "ui/xdnd.hpp"
 
 namespace cse {
 namespace ui {
@@ -113,6 +115,7 @@ struct X11UI {
   UiState state;
   Panel panel;
   Host host;
+  XdndDropTarget xdnd;
   int windowW = 0;
   int windowH = 0;
   double scale = 1.0;
@@ -201,6 +204,10 @@ void toLogical(const X11UI* ui, int x, int y, double& lx, double& ly) {
 }
 
 void onButtonPress(X11UI* ui, XButtonEvent& ev) {
+  if (ui->display && ui->window) {
+    XSetInputFocus(ui->display, ui->window, RevertToParent, CurrentTime);
+    XFlush(ui->display);
+  }
   double x = 0.0;
   double y = 0.0;
   toLogical(ui, ev.x, ev.y, x, y);
@@ -285,6 +292,10 @@ void processEvents(X11UI* ui) {
   while (XPending(ui->display)) {
     XEvent ev;
     XNextEvent(ui->display, &ev);
+    if (ui->xdnd.handle(ev)) {
+      ui->dirty = true;
+      continue;
+    }
     switch (ev.type) {
       case Expose:
         ui->dirty = true;
@@ -311,6 +322,22 @@ void processEvents(X11UI* ui) {
       case MotionNotify:
         onMotion(ui, ev.xmotion);
         break;
+      case KeyPress: {
+        char buf[8] = {};
+        KeySym ks = 0;
+        XLookupString(&ev.xkey, buf, sizeof(buf) - 1, &ks, nullptr);
+        int key = 0;
+        if (ks == XK_BackSpace) key = 8;
+        else if (ks == XK_Return || ks == XK_KP_Enter) key = 13;
+        else if (ks == XK_Escape) key = 27;
+        if (ui->panel.key(ui->state, key, buf,
+                          [ui](uint32_t port, float value) {
+                            sendValue(ui, port, value);
+                          })) {
+          ui->dirty = true;
+        }
+        break;
+      }
       case LeaveNotify:
         ui->panel.setHover(-10000.0, -10000.0);
         ui->dirty = true;
@@ -399,6 +426,7 @@ LV2UI_Handle uiInstantiate(const LV2UI_Descriptor*, const char*,
   swa.background_pixel = 0x080b12;
   swa.border_pixel = 0;
   swa.event_mask = ExposureMask | StructureNotifyMask | ButtonPressMask |
+                   KeyPressMask |
                    ButtonReleaseMask | PointerMotionMask | LeaveWindowMask;
   swa.colormap = attributes.colormap
                      ? attributes.colormap
@@ -415,7 +443,15 @@ LV2UI_Handle uiInstantiate(const LV2UI_Descriptor*, const char*,
     return nullptr;
   }
   if (ui->topLevel) {
-    XStoreName(ui->display, ui->window, "Common Sense EQ");
+    ui->xdnd.init(ui->display, ui->window, [ui](const std::string& path) {
+    if (ui->panel.importDroppedFile(ui->state, path,
+                                    [ui](uint32_t port, float value) {
+                                      sendValue(ui, port, value);
+                                    })) {
+      ui->dirty = true;
+    }
+  });
+  XStoreName(ui->display, ui->window, "Common Sense EQ");
   }
   XMapRaised(ui->display, ui->window);
   XFlush(ui->display);
