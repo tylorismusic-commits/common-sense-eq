@@ -2,7 +2,7 @@
 
 [![build](https://github.com/tylorismusic-commits/common-sense-eq/actions/workflows/build.yml/badge.svg)](https://github.com/tylorismusic-commits/common-sense-eq/actions/workflows/build.yml)
 
-**Version 0.1.1** · [GitHub](https://github.com/tylorismusic-commits/common-sense-eq) · GPL-3.0-or-later
+**Version 0.1.2** · [GitHub](https://github.com/tylorismusic-commits/common-sense-eq) · GPL-3.0-or-later
 
 **Common Sense EQ** is a free, open-source 8-band channel EQ for Linux with
 dynamic bands, a spectrum analyzer, and EQ curves in the mixer strip of Ardour

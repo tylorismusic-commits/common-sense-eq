@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.2
+
+- User preset bank with save, rename, duplicate, delete, export and drag-drop
+  import.
+- Preset files live in `~/.config/CommonSenseEQ/presets` and export to
+  `~/Documents/Common Sense EQ Presets`.
+- Preset name entry uses the keyboard; the browser scrolls with the wheel.
+
 ## 0.1.1
 
 - Use the shared Comp Suite / Suite power button: the same dark disc and green
