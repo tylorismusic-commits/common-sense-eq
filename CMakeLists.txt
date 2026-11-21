@@ -15,7 +15,15 @@ find_package(Threads REQUIRED)
 pkg_check_modules(LV2 REQUIRED IMPORTED_TARGET lv2)
 pkg_check_modules(LILV QUIET IMPORTED_TARGET lilv-0)
 pkg_check_modules(CAIRO REQUIRED IMPORTED_TARGET cairo)
-pkg_check_modules(X11 REQUIRED IMPORTED_TARGET x11)
+# The editor host is X11 today.  macOS builds the portable targets (DSP,
+# panel preview, tests) until the Cocoa view lands, so X11 stays optional.
+option(CSE_NO_X11 "Skip the X11 editor targets (portable subset)" OFF)
+if(APPLE OR CSE_NO_X11)
+  set(CSE_X11 OFF)
+else()
+  pkg_check_modules(X11 REQUIRED IMPORTED_TARGET x11)
+  set(CSE_X11 ON)
+endif()
 
 set(CSE_SOURCES
   src/ui/editor.cpp
@@ -58,6 +66,7 @@ add_dependencies(common_sense_eq_bundle common-sense-eq)
 # ---------------------------------------------------------------------------
 # X11 / Cairo editor, exposed as an LV2 UI so the CLAP build can reuse it
 # ---------------------------------------------------------------------------
+if(CSE_X11)
 add_library(common_sense_eq_ui MODULE ${CSE_SOURCES})
 cse_common(common_sense_eq_ui)
 target_compile_definitions(common_sense_eq_ui PRIVATE LV2_SYMBOL_EXPORT=)
@@ -73,6 +82,7 @@ add_custom_target(common_sense_eq_ui_bundle ALL
           "$<TARGET_FILE:common_sense_eq_ui>"
           "${CMAKE_BINARY_DIR}/lv2/common-sense-eq.lv2/"
   DEPENDS common_sense_eq_ui)
+endif()  # CSE_X11
 
 add_executable(common_sense_eq_preset_test test/test_presets.cpp src/ui/panel.cpp)
 cse_common(common_sense_eq_preset_test)
@@ -80,11 +90,19 @@ target_link_libraries(common_sense_eq_preset_test PRIVATE
   PkgConfig::CAIRO)
 add_test(NAME common_sense_eq_presets COMMAND common_sense_eq_preset_test)
 
+if(CSE_X11)
 add_executable(common_sense_eq_ui_preview EXCLUDE_FROM_ALL ${CSE_SOURCES})
 cse_common(common_sense_eq_ui_preview)
 target_compile_definitions(common_sense_eq_ui_preview PRIVATE CSE_UI_PREVIEW)
 target_link_libraries(common_sense_eq_ui_preview PRIVATE
   PkgConfig::CAIRO PkgConfig::X11 PkgConfig::LV2)
+endif()
+
+# Full panel render with no window system: the macOS CI build uses this to
+# prove panel.cpp compiles and draws with cairo alone.
+add_executable(common_sense_eq_panel_preview tools/panel_preview.cpp src/ui/panel.cpp)
+cse_common(common_sense_eq_panel_preview)
+target_link_libraries(common_sense_eq_panel_preview PRIVATE PkgConfig::CAIRO)
 
 add_executable(common_sense_eq_inline_preview EXCLUDE_FROM_ALL
   tools/inline_preview.cpp)
@@ -94,6 +112,7 @@ target_link_libraries(common_sense_eq_inline_preview PRIVATE PkgConfig::CAIRO)
 # ---------------------------------------------------------------------------
 # CLAP build
 # ---------------------------------------------------------------------------
+if(CSE_X11)
 add_library(common_sense_eq_clap MODULE src/clap/common_sense_eq_clap.cpp)
 cse_common(common_sense_eq_clap)
 target_include_directories(common_sense_eq_clap PRIVATE
@@ -115,15 +134,20 @@ add_custom_target(common_sense_eq_clap_bundle ALL
           "$<TARGET_FILE:common_sense_eq_ui>"
           "${CMAKE_BINARY_DIR}/clap/CommonSenseEQ.resources/CommonSenseEQUI.so"
   DEPENDS common_sense_eq_clap common_sense_eq_ui)
+endif()  # CSE_X11
 
-install(TARGETS common-sense-eq common_sense_eq_ui
+install(TARGETS common-sense-eq
   LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/lv2/common-sense-eq.lv2")
 install(FILES lv2/manifest.ttl lv2/common-sense-eq.ttl
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/lv2/common-sense-eq.lv2")
-install(TARGETS common_sense_eq_clap
-  LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/clap")
-install(DIRECTORY "${CMAKE_BINARY_DIR}/clap/CommonSenseEQ.resources"
-  DESTINATION "${CMAKE_INSTALL_LIBDIR}/clap")
+if(CSE_X11)
+  install(TARGETS common_sense_eq_ui
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/lv2/common-sense-eq.lv2")
+  install(TARGETS common_sense_eq_clap
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/clap")
+  install(DIRECTORY "${CMAKE_BINARY_DIR}/clap/CommonSenseEQ.resources"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/clap")
+endif()
 
 # ---------------------------------------------------------------------------
 # Tests
@@ -137,15 +161,17 @@ if(LILV_FOUND)
   cse_common(common_sense_eq_host_test)
   target_link_libraries(common_sense_eq_host_test PRIVATE PkgConfig::LILV
     PkgConfig::LV2)
-  add_dependencies(common_sense_eq_host_test common_sense_eq_bundle
-    common_sense_eq_ui_bundle)
+  add_dependencies(common_sense_eq_host_test common_sense_eq_bundle)
+  if(CSE_X11)
+    add_dependencies(common_sense_eq_host_test common_sense_eq_ui_bundle)
+  endif()
   add_test(NAME common_sense_eq_host
     COMMAND common_sense_eq_host_test "${CMAKE_BINARY_DIR}/lv2/common-sense-eq.lv2")
 endif()
 
 find_library(CSE_XTST_LIBRARY Xtst)
 find_program(CSE_XVFB_RUN xvfb-run)
-if(CSE_XTST_LIBRARY AND CSE_XVFB_RUN)
+if(CSE_X11 AND CSE_XTST_LIBRARY AND CSE_XVFB_RUN)
   add_executable(common_sense_eq_ui_host_test test/ui_host_test.cpp)
   cse_common(common_sense_eq_ui_host_test)
   target_link_libraries(common_sense_eq_ui_host_test PRIVATE
@@ -159,6 +185,7 @@ if(CSE_XTST_LIBRARY AND CSE_XVFB_RUN)
       "${CMAKE_BINARY_DIR}/common-sense-eq-ui-live.png")
 endif()
 
+if(CSE_X11)
 add_executable(common_sense_eq_clap_host_test test/clap_host_test.cpp)
 cse_common(common_sense_eq_clap_host_test)
 target_include_directories(common_sense_eq_clap_host_test PRIVATE
@@ -183,3 +210,4 @@ if(CSE_XTST_LIBRARY AND CSE_XVFB_RUN)
       "${CMAKE_BINARY_DIR}/clap/CommonSenseEQ.clap"
       "com.tylorismusic.commonsense" "--gui")
 endif()
+endif()  # CSE_X11
