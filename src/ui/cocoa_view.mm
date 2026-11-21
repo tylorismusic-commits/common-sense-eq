@@ -54,7 +54,6 @@ Placement placementFor(double width, double height) {
   cairo_t* context;
   int surfaceWidth;
   int surfaceHeight;
-  int orientation;
   NSTimer* refreshTimer;
 }
 - (void)tick:(NSTimer*)timer;
@@ -147,28 +146,10 @@ Placement placementFor(double width, double height) {
       space, kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little,
       provider, nullptr, false, kCGRenderingIntentDefault);
   if (image) {
-    // Orientation diagnostics: Ctrl+Shift+F cycles the four axis flips and
-    // prints the mode.  Once the right one is known it gets hard-coded.
+    // The view is not flipped and CGImage draws top-down into the AppKit
+    // context as-is; an extra CTM flip inverts the panel.
     CGContextRef ctx = [[NSGraphicsContext currentContext] CGContext];
-    CGContextSaveGState(ctx);
-    switch (orientation & 3) {
-      case 1:
-        CGContextTranslateCTM(ctx, 0.0, height);
-        CGContextScaleCTM(ctx, 1.0, -1.0);
-        break;
-      case 2:
-        CGContextTranslateCTM(ctx, width, 0.0);
-        CGContextScaleCTM(ctx, -1.0, 1.0);
-        break;
-      case 3:
-        CGContextTranslateCTM(ctx, width, height);
-        CGContextScaleCTM(ctx, -1.0, -1.0);
-        break;
-      default:
-        break;
-    }
     CGContextDrawImage(ctx, CGRectMake(0.0, 0.0, width, height), image);
-    CGContextRestoreGState(ctx);
     CGImageRelease(image);
   }
   CGDataProviderRelease(provider);
@@ -252,14 +233,6 @@ Placement placementFor(double width, double height) {
 
 - (void)keyDown:(NSEvent*)event {
   if (!viewState || !viewState->panel || !viewState->state) return;
-  if ((event.modifierFlags & NSEventModifierFlagControl) &&
-      (event.modifierFlags & NSEventModifierFlagShift) &&
-      [[event.charactersIgnoringModifiers lowercaseString] isEqualToString:@"f"]) {
-    orientation = (orientation + 1) & 3;
-    NSLog(@"CSE cocoa orientation = %d", orientation);
-    [self setNeedsDisplay:YES];
-    return;
-  }
   int key = 0;
   switch (event.keyCode) {
     case 53: key = 27; break;   // Escape
@@ -304,7 +277,6 @@ void CocoaView::attach(void* parentNsView) {
     impl_->view->context = nullptr;
     impl_->view->surfaceWidth = 0;
     impl_->view->surfaceHeight = 0;
-    impl_->view->orientation = 0;
     impl_->view->refreshTimer = nil;
     impl_->view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
   }
