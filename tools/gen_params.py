@@ -20,15 +20,17 @@ BASE = "https://github.com/tylorismusic-commits/common-sense-eq"
 PLUGIN = BASE
 UI = BASE + "#ui"
 
+# Q is the band's size: 1.0 is a natural starting width for every band, and it
+# keeps the bells from opening much narrower than the shelves.
 BANDS = [
-    ("Low Cut", "low_cut", 20.0, 0.71, 24),
-    ("Low Shelf", "low_shelf", 75.0, 0.71, 24),
-    ("Bell 1", "bell1", 100.0, 0.60, 24),
-    ("Bell 2", "bell2", 270.0, 0.78, 24),
-    ("Bell 3", "bell3", 750.0, 0.30, 24),
-    ("Bell 4", "bell4", 2500.0, 0.20, 24),
-    ("High Shelf", "high_shelf", 4600.0, 0.71, 24),
-    ("High Cut", "high_cut", 20000.0, 0.71, 24),
+    ("Low Cut", "low_cut", 20.0, 1.0, 24),
+    ("Low Shelf", "low_shelf", 75.0, 1.0, 24),
+    ("Bell 1", "bell1", 100.0, 1.0, 24),
+    ("Bell 2", "bell2", 270.0, 1.0, 24),
+    ("Bell 3", "bell3", 750.0, 1.0, 24),
+    ("Bell 4", "bell4", 2500.0, 1.0, 24),
+    ("High Shelf", "high_shelf", 4600.0, 1.0, 24),
+    ("High Cut", "high_cut", 20000.0, 1.0, 24),
 ]
 
 # (symbol, name, min, max, default, unit, kind, group, points)

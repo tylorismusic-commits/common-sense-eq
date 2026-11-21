@@ -40,8 +40,8 @@ inline bool bandIsCut(int band) noexcept {
 
 inline constexpr float kDefaultFreq[8] = {20.0f, 75.0f, 100.0f, 270.0f,
                                            750.0f, 2500.0f, 4600.0f, 20000.0f};
-inline constexpr float kDefaultQ[8] = {0.71f, 0.71f, 0.60f, 0.78f,
-                                       0.30f, 0.20f, 0.71f, 0.71f};
+inline constexpr float kDefaultQ[8] = {1.0f, 1.0f, 1.0f, 1.0f,
+                                       1.0f, 1.0f, 1.0f, 1.0f};
 inline constexpr int kDefaultSlope[8] = {24, 24, 24, 24, 24, 24, 24, 24};
 
 struct BandParams {

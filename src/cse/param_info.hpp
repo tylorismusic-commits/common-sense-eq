@@ -227,7 +227,7 @@ inline constexpr ParamInfo kParams[] = {
     {9, "low_cut_on", "Low Cut On", 0, 1, 1, Unit::Unitless, false, true, false, 1, nullptr, 0},
     {10, "low_cut_freq", "Low Cut Frequency", 20, 20000, 20, Unit::Hz, true, false, false, 1, nullptr, 0},
     {11, "low_cut_gain", "Low Cut Gain", -30, 30, 0, Unit::Db, false, false, false, 1, nullptr, 0},
-    {12, "low_cut_q", "Low Cut Q", 0.1, 25, 0.71, Unit::Unitless, true, false, false, 1, nullptr, 0},
+    {12, "low_cut_q", "Low Cut Q", 0.1, 25, 1, Unit::Unitless, true, false, false, 1, nullptr, 0},
     {13, "low_cut_slope", "Low Cut Slope", 6, 30, 24, Unit::Unitless, false, false, true, 1, kScale_low_cut_slope, 5},
     {14, "low_cut_dyn_on", "Low Cut Dynamic", 0, 1, 0, Unit::Unitless, false, true, false, 1, nullptr, 0},
     {15, "low_cut_dyn_threshold", "Low Cut Threshold", -60, 0, -30, Unit::Db, false, false, false, 1, nullptr, 0},
@@ -239,7 +239,7 @@ inline constexpr ParamInfo kParams[] = {
     {21, "low_shelf_on", "Low Shelf On", 0, 1, 1, Unit::Unitless, false, true, false, 2, nullptr, 0},
     {22, "low_shelf_freq", "Low Shelf Frequency", 20, 20000, 75, Unit::Hz, true, false, false, 2, nullptr, 0},
     {23, "low_shelf_gain", "Low Shelf Gain", -30, 30, 0, Unit::Db, false, false, false, 2, nullptr, 0},
-    {24, "low_shelf_q", "Low Shelf Q", 0.1, 25, 0.71, Unit::Unitless, true, false, false, 2, nullptr, 0},
+    {24, "low_shelf_q", "Low Shelf Q", 0.1, 25, 1, Unit::Unitless, true, false, false, 2, nullptr, 0},
     {25, "low_shelf_slope", "Low Shelf Slope", 6, 30, 24, Unit::Unitless, false, false, true, 2, kScale_low_shelf_slope, 5},
     {26, "low_shelf_dyn_on", "Low Shelf Dynamic", 0, 1, 0, Unit::Unitless, false, true, false, 2, nullptr, 0},
     {27, "low_shelf_dyn_threshold", "Low Shelf Threshold", -60, 0, -30, Unit::Db, false, false, false, 2, nullptr, 0},
@@ -251,7 +251,7 @@ inline constexpr ParamInfo kParams[] = {
     {33, "bell1_on", "Bell 1 On", 0, 1, 1, Unit::Unitless, false, true, false, 3, nullptr, 0},
     {34, "bell1_freq", "Bell 1 Frequency", 20, 20000, 100, Unit::Hz, true, false, false, 3, nullptr, 0},
     {35, "bell1_gain", "Bell 1 Gain", -30, 30, 0, Unit::Db, false, false, false, 3, nullptr, 0},
-    {36, "bell1_q", "Bell 1 Q", 0.1, 25, 0.6, Unit::Unitless, true, false, false, 3, nullptr, 0},
+    {36, "bell1_q", "Bell 1 Q", 0.1, 25, 1, Unit::Unitless, true, false, false, 3, nullptr, 0},
     {37, "bell1_slope", "Bell 1 Slope", 6, 30, 24, Unit::Unitless, false, false, true, 3, kScale_bell1_slope, 5},
     {38, "bell1_dyn_on", "Bell 1 Dynamic", 0, 1, 0, Unit::Unitless, false, true, false, 3, nullptr, 0},
     {39, "bell1_dyn_threshold", "Bell 1 Threshold", -60, 0, -30, Unit::Db, false, false, false, 3, nullptr, 0},
@@ -263,7 +263,7 @@ inline constexpr ParamInfo kParams[] = {
     {45, "bell2_on", "Bell 2 On", 0, 1, 1, Unit::Unitless, false, true, false, 4, nullptr, 0},
     {46, "bell2_freq", "Bell 2 Frequency", 20, 20000, 270, Unit::Hz, true, false, false, 4, nullptr, 0},
     {47, "bell2_gain", "Bell 2 Gain", -30, 30, 0, Unit::Db, false, false, false, 4, nullptr, 0},
-    {48, "bell2_q", "Bell 2 Q", 0.1, 25, 0.78, Unit::Unitless, true, false, false, 4, nullptr, 0},
+    {48, "bell2_q", "Bell 2 Q", 0.1, 25, 1, Unit::Unitless, true, false, false, 4, nullptr, 0},
     {49, "bell2_slope", "Bell 2 Slope", 6, 30, 24, Unit::Unitless, false, false, true, 4, kScale_bell2_slope, 5},
     {50, "bell2_dyn_on", "Bell 2 Dynamic", 0, 1, 0, Unit::Unitless, false, true, false, 4, nullptr, 0},
     {51, "bell2_dyn_threshold", "Bell 2 Threshold", -60, 0, -30, Unit::Db, false, false, false, 4, nullptr, 0},
@@ -275,7 +275,7 @@ inline constexpr ParamInfo kParams[] = {
     {57, "bell3_on", "Bell 3 On", 0, 1, 1, Unit::Unitless, false, true, false, 5, nullptr, 0},
     {58, "bell3_freq", "Bell 3 Frequency", 20, 20000, 750, Unit::Hz, true, false, false, 5, nullptr, 0},
     {59, "bell3_gain", "Bell 3 Gain", -30, 30, 0, Unit::Db, false, false, false, 5, nullptr, 0},
-    {60, "bell3_q", "Bell 3 Q", 0.1, 25, 0.3, Unit::Unitless, true, false, false, 5, nullptr, 0},
+    {60, "bell3_q", "Bell 3 Q", 0.1, 25, 1, Unit::Unitless, true, false, false, 5, nullptr, 0},
     {61, "bell3_slope", "Bell 3 Slope", 6, 30, 24, Unit::Unitless, false, false, true, 5, kScale_bell3_slope, 5},
     {62, "bell3_dyn_on", "Bell 3 Dynamic", 0, 1, 0, Unit::Unitless, false, true, false, 5, nullptr, 0},
     {63, "bell3_dyn_threshold", "Bell 3 Threshold", -60, 0, -30, Unit::Db, false, false, false, 5, nullptr, 0},
@@ -287,7 +287,7 @@ inline constexpr ParamInfo kParams[] = {
     {69, "bell4_on", "Bell 4 On", 0, 1, 1, Unit::Unitless, false, true, false, 6, nullptr, 0},
     {70, "bell4_freq", "Bell 4 Frequency", 20, 20000, 2500, Unit::Hz, true, false, false, 6, nullptr, 0},
     {71, "bell4_gain", "Bell 4 Gain", -30, 30, 0, Unit::Db, false, false, false, 6, nullptr, 0},
-    {72, "bell4_q", "Bell 4 Q", 0.1, 25, 0.2, Unit::Unitless, true, false, false, 6, nullptr, 0},
+    {72, "bell4_q", "Bell 4 Q", 0.1, 25, 1, Unit::Unitless, true, false, false, 6, nullptr, 0},
     {73, "bell4_slope", "Bell 4 Slope", 6, 30, 24, Unit::Unitless, false, false, true, 6, kScale_bell4_slope, 5},
     {74, "bell4_dyn_on", "Bell 4 Dynamic", 0, 1, 0, Unit::Unitless, false, true, false, 6, nullptr, 0},
     {75, "bell4_dyn_threshold", "Bell 4 Threshold", -60, 0, -30, Unit::Db, false, false, false, 6, nullptr, 0},
@@ -299,7 +299,7 @@ inline constexpr ParamInfo kParams[] = {
     {81, "high_shelf_on", "High Shelf On", 0, 1, 1, Unit::Unitless, false, true, false, 7, nullptr, 0},
     {82, "high_shelf_freq", "High Shelf Frequency", 20, 20000, 4600, Unit::Hz, true, false, false, 7, nullptr, 0},
     {83, "high_shelf_gain", "High Shelf Gain", -30, 30, 0, Unit::Db, false, false, false, 7, nullptr, 0},
-    {84, "high_shelf_q", "High Shelf Q", 0.1, 25, 0.71, Unit::Unitless, true, false, false, 7, nullptr, 0},
+    {84, "high_shelf_q", "High Shelf Q", 0.1, 25, 1, Unit::Unitless, true, false, false, 7, nullptr, 0},
     {85, "high_shelf_slope", "High Shelf Slope", 6, 30, 24, Unit::Unitless, false, false, true, 7, kScale_high_shelf_slope, 5},
     {86, "high_shelf_dyn_on", "High Shelf Dynamic", 0, 1, 0, Unit::Unitless, false, true, false, 7, nullptr, 0},
     {87, "high_shelf_dyn_threshold", "High Shelf Threshold", -60, 0, -30, Unit::Db, false, false, false, 7, nullptr, 0},
@@ -311,7 +311,7 @@ inline constexpr ParamInfo kParams[] = {
     {93, "high_cut_on", "High Cut On", 0, 1, 1, Unit::Unitless, false, true, false, 8, nullptr, 0},
     {94, "high_cut_freq", "High Cut Frequency", 20, 20000, 20000, Unit::Hz, true, false, false, 8, nullptr, 0},
     {95, "high_cut_gain", "High Cut Gain", -30, 30, 0, Unit::Db, false, false, false, 8, nullptr, 0},
-    {96, "high_cut_q", "High Cut Q", 0.1, 25, 0.71, Unit::Unitless, true, false, false, 8, nullptr, 0},
+    {96, "high_cut_q", "High Cut Q", 0.1, 25, 1, Unit::Unitless, true, false, false, 8, nullptr, 0},
     {97, "high_cut_slope", "High Cut Slope", 6, 30, 24, Unit::Unitless, false, false, true, 8, kScale_high_cut_slope, 5},
     {98, "high_cut_dyn_on", "High Cut Dynamic", 0, 1, 0, Unit::Unitless, false, true, false, 8, nullptr, 0},
     {99, "high_cut_dyn_threshold", "High Cut Threshold", -60, 0, -30, Unit::Db, false, false, false, 8, nullptr, 0},
@@ -336,7 +336,7 @@ inline const ParamInfo* infoFor(uint32_t index) {
 }
 
 inline constexpr float kBandDefaultFreq[8] = {20, 75, 100, 270, 750, 2500, 4600, 20000};
-inline constexpr float kBandDefaultQ[8] = {0.71, 0.71, 0.6, 0.78, 0.3, 0.2, 0.71, 0.71};
+inline constexpr float kBandDefaultQ[8] = {1, 1, 1, 1, 1, 1, 1, 1};
 inline constexpr int kBandDefaultSlope[8] = {24, 24, 24, 24, 24, 24, 24, 24};
 
 struct PresetValue { uint32_t port; float value; };
