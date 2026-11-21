@@ -4,6 +4,11 @@ name: macOS
 # bundles with free-audio/clap-wrapper.  Both wrappers embed the .clap in
 # their own Contents/PlugIns, and each finished bundle is validated before
 # it is uploaded.
+#
+# arm64 is built for every push.  The Intel slice only runs on workflow
+# dispatch and tags, because it is the release job that needs it and it
+# doubles this workflow's macOS minutes; the universal job lipos the two
+# slices together, re-signs, and validates the result.
 
 on:
   push:
@@ -13,8 +18,17 @@ on:
 
 jobs:
   macos:
-    name: macOS arm64
-    runs-on: macos-15
+    name: macOS ${{ matrix.arch }}
+    if: matrix.arch == 'arm64' || github.event_name != 'push'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-15
+          - arch: x86_64
+            runner: macos-15-intel
+    runs-on: ${{ matrix.runner }}
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: 4
 
@@ -33,7 +47,7 @@ jobs:
         run: >
           cmake -S . -B build-macos
           -DCMAKE_BUILD_TYPE=Release
-          -DCMAKE_OSX_ARCHITECTURES=arm64
+          -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }}
           -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
 
       - name: Build
@@ -121,7 +135,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: macos-panel-preview
+          name: macos-panel-preview-${{ matrix.arch }}
           path: build-macos/panel-preview.png
           if-no-files-found: warn
 
@@ -129,7 +143,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: CommonSenseEQ-macos-clap
+          name: CommonSenseEQ-macos-${{ matrix.arch }}-clap
           path: build-macos/clap
           if-no-files-found: warn
 
@@ -137,7 +151,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: CommonSenseEQ-macos-vst3
+          name: CommonSenseEQ-macos-${{ matrix.arch }}-vst3
           path: build-macos/vst3
           if-no-files-found: warn
 
@@ -145,6 +159,135 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: CommonSenseEQ-macos-au
+          name: CommonSenseEQ-macos-${{ matrix.arch }}-au
           path: build-macos/au
+          if-no-files-found: warn
+
+  universal:
+    name: macOS universal
+    needs: macos
+    if: github.event_name != 'push'
+    runs-on: macos-15
+    steps:
+      - name: Download the arm64 slice
+        uses: actions/download-artifact@v4
+        with:
+          name: CommonSenseEQ-macos-arm64-clap
+          path: slices/arm64/clap
+      - name: Download the arm64 VST3
+        uses: actions/download-artifact@v4
+        with:
+          name: CommonSenseEQ-macos-arm64-vst3
+          path: slices/arm64/vst3
+      - name: Download the arm64 AUv2
+        uses: actions/download-artifact@v4
+        with:
+          name: CommonSenseEQ-macos-arm64-au
+          path: slices/arm64/au
+      - name: Download the x86_64 slice
+        uses: actions/download-artifact@v4
+        with:
+          name: CommonSenseEQ-macos-x86_64-clap
+          path: slices/x86_64/clap
+      - name: Download the x86_64 VST3
+        uses: actions/download-artifact@v4
+        with:
+          name: CommonSenseEQ-macos-x86_64-vst3
+          path: slices/x86_64/vst3
+      - name: Download the x86_64 AUv2
+        uses: actions/download-artifact@v4
+        with:
+          name: CommonSenseEQ-macos-x86_64-au
+          path: slices/x86_64/au
+
+      - name: Merge the slices
+        run: |
+          set -euo pipefail
+          rm -rf universal
+          mkdir -p universal
+
+          for tree in clap vst3 au; do
+            [ -d "slices/arm64/$tree" ] || continue
+            cp -R "slices/arm64/$tree" "universal/$tree"
+          done
+
+          merged=0
+          thin=0
+          # Every Mach-O that exists on both sides becomes universal.  A file
+          # that only one slice has is kept as it is: each slice's load
+          # commands name their own dependencies, so the bundle can carry both
+          # a Homebrew version that differs between runners.
+          while IFS= read -r -d '' a; do
+            rel="${a#universal/}"
+            b="slices/x86_64/$rel"
+            [ -f "$b" ] || continue
+            file -b "$a" | grep -q "Mach-O" || continue
+            file -b "$b" | grep -q "Mach-O" || continue
+            lipo -create "$a" "$b" -output "$a.universal"
+            mv "$a.universal" "$a"
+            merged=$((merged + 1))
+          done < <(find universal -type f -print0)
+
+          while IFS= read -r -d '' b; do
+            rel="${b#slices/x86_64/}"
+            [ -e "universal/$rel" ] && continue
+            mkdir -p "$(dirname "universal/$rel")"
+            cp -R "$b" "universal/$rel"
+            thin=$((thin + 1))
+          done < <(find slices/x86_64 -type f -print0)
+
+          echo "lipo'd $merged files, kept $thin x86_64-only files"
+
+          # Both slices must be present in the binaries a host loads.
+          for main in \
+            universal/clap/CommonSenseEQ.clap/Contents/MacOS/CommonSenseEQ \
+            universal/vst3/CommonSenseEQ.vst3/Contents/MacOS/CommonSenseEQ \
+            universal/au/CommonSenseEQ.component/Contents/MacOS/CommonSenseEQ
+          do
+            echo "== $main"
+            lipo -archs "$main"
+            lipo -archs "$main" | grep -q arm64
+            lipo -archs "$main" | grep -q x86_64
+          done
+
+          codesign --force --deep --sign - universal/clap/CommonSenseEQ.clap
+          codesign --force --deep --sign - universal/vst3/CommonSenseEQ.vst3
+          codesign --force --deep --sign - universal/au/CommonSenseEQ.component
+
+      - name: Validate the universal AUv2
+        run: |
+          mkdir -p "$HOME/Library/Audio/Plug-Ins/Components"
+          rm -rf "$HOME/Library/Audio/Plug-Ins/Components/CommonSenseEQ.component"
+          cp -R universal/au/CommonSenseEQ.component \
+            "$HOME/Library/Audio/Plug-Ins/Components/"
+          killall -9 AudioComponentRegistrar 2>/dev/null || true
+          for attempt in 1 2 3 4 5; do
+            if auval -v aufx CsEQ Tylr; then
+              exit 0
+            fi
+            sleep 5
+            killall -9 AudioComponentRegistrar 2>/dev/null || true
+          done
+          echo "auval rejected the universal component"
+          exit 1
+
+      - name: Validate the universal VST3
+        run: |
+          curl -fL --retry 3 -o pluginval.zip \
+            https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_macOS.zip
+          unzip -q pluginval.zip
+          if ! pluginval.app/Contents/MacOS/pluginval \
+              --strictness-level 5 \
+              --validate universal/vst3/CommonSenseEQ.vst3; then
+            pluginval.app/Contents/MacOS/pluginval \
+              --strictness-level 5 --skip-gui-tests \
+              --validate universal/vst3/CommonSenseEQ.vst3
+          fi
+
+      - name: Upload the universal bundles
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CommonSenseEQ-macos-universal
+          path: universal
           if-no-files-found: warn
