@@ -161,7 +161,7 @@ if(DYLIBBUNDLER)
     COMMAND "${DYLIBBUNDLER}" -od -b
             -x "${CSE_CLAP_BUNDLE}/Contents/MacOS/CommonSenseEQ"
             -d "${CSE_CLAP_BUNDLE}/Contents/Frameworks"
-            -p "@executable_path/../Frameworks")
+            -p "@loader_path/../Frameworks")
   # dylibbundler re-signs every library it rewrites and the executable, so no
   # extra codesign pass is needed (the find -exec form also trips CMake's
   # argument handling).

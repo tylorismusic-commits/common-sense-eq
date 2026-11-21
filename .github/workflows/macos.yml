@@ -50,6 +50,10 @@ jobs:
         run: |
           file build-macos/clap/CommonSenseEQ.clap/Contents/MacOS/CommonSenseEQ
           otool -L build-macos/clap/CommonSenseEQ.clap/Contents/MacOS/CommonSenseEQ | head -12
+          # A plugin must use @loader_path; @executable_path points at the host.
+          if otool -L build-macos/clap/CommonSenseEQ.clap/Contents/MacOS/CommonSenseEQ | grep -q '@executable_path'; then
+            echo "bundle still references @executable_path"; exit 1
+          fi
           ls build-macos/clap/CommonSenseEQ.clap/Contents/Frameworks
           codesign --verify --verbose build-macos/clap/CommonSenseEQ.clap
 
