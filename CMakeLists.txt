@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(common-sense-eq VERSION 0.1.3 LANGUAGES CXX)
+project(common-sense-eq VERSION 0.1.4 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -184,7 +184,7 @@ add_dependencies(common_sense_eq_vst3 common_sense_eq_clap_bundle)
 target_add_vst3_wrapper(TARGET common_sense_eq_vst3
   OUTPUT_NAME "CommonSenseEQ"
   BUNDLE_IDENTIFIER "com.tylorismusic.commonsense"
-  BUNDLE_VERSION "0.1.3"
+  BUNDLE_VERSION "0.1.4"
   ASSET_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/vst3"
   MACOS_EMBEDDED_CLAP_LOCATION "${CSE_CLAP_BUNDLE}")
 
@@ -193,7 +193,7 @@ add_dependencies(common_sense_eq_auv2 common_sense_eq_clap_bundle)
 target_add_auv2_wrapper(TARGET common_sense_eq_auv2
   OUTPUT_NAME "CommonSenseEQ"
   BUNDLE_IDENTIFIER "com.tylorismusic.commonsense"
-  BUNDLE_VERSION "0.1.3"
+  BUNDLE_VERSION "0.1.4"
   MANUFACTURER_NAME "tylorismusic"
   MANUFACTURER_CODE "Tylr"
   SUBTYPE_CODE "CsEQ"

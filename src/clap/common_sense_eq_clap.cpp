@@ -209,7 +209,7 @@ public:
 
   static const clap_plugin_descriptor_t& descriptor() {
     static const char* features[] = {CLAP_PLUGIN_FEATURE_AUDIO_EFFECT, "eq",
-                                     "stereo", nullptr};
+                                     nullptr};
     static const clap_plugin_descriptor_t desc = {
         CLAP_VERSION,
         kPluginId,
@@ -218,7 +218,7 @@ public:
         "https://github.com/tylorismusic-commits/common-sense-eq",
         "",
         "https://github.com/tylorismusic-commits/common-sense-eq/issues",
-        "0.1.2",
+        "0.1.4",
         "Eight-band channel EQ with dynamic bands, an analyzer, and inline "
         "mixer-strip displays.",
         features};
