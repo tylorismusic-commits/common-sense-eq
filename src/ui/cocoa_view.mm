@@ -146,12 +146,11 @@ Placement placementFor(double width, double height) {
       space, kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little,
       provider, nullptr, false, kCGRenderingIntentDefault);
   if (image) {
+    // The view is not flipped, so the NSGraphicsContext already has a
+    // bottom-left origin and CGImage draws top-down correctly.  Flipping the
+    // CTM here as well produced an upside-down panel.
     CGContextRef ctx = [[NSGraphicsContext currentContext] CGContext];
-    CGContextSaveGState(ctx);
-    CGContextTranslateCTM(ctx, 0.0, height);
-    CGContextScaleCTM(ctx, 1.0, -1.0);
     CGContextDrawImage(ctx, CGRectMake(0.0, 0.0, width, height), image);
-    CGContextRestoreGState(ctx);
     CGImageRelease(image);
   }
   CGDataProviderRelease(provider);
