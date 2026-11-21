@@ -26,7 +26,7 @@ jobs:
 
       - name: Toolchain
         run: |
-          brew install cmake pkg-config cairo freetype lv2 lilv
+          brew install cmake pkg-config cairo freetype lv2 lilv dylibbundler
           pkg-config --modversion cairo lv2
           cmake --version | head -1
 
@@ -50,6 +50,8 @@ jobs:
         run: |
           file build-macos/clap/CommonSenseEQ.clap/Contents/MacOS/CommonSenseEQ
           otool -L build-macos/clap/CommonSenseEQ.clap/Contents/MacOS/CommonSenseEQ | head -12
+          ls build-macos/clap/CommonSenseEQ.clap/Contents/Frameworks
+          codesign --verify --verbose build-macos/clap/CommonSenseEQ.clap
 
       - name: Upload panel preview
         if: always()

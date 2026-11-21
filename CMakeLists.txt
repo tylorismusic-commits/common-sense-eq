@@ -136,6 +136,9 @@ set_target_properties(common_sense_eq_clap PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/macos")
 
 set(CSE_CLAP_BUNDLE "${CMAKE_BINARY_DIR}/clap/CommonSenseEQ.clap")
+find_program(DYLIBBUNDLER dylibbundler)
+find_program(CODESIGN codesign)
+
 add_custom_command(TARGET common_sense_eq_clap POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E make_directory
           "${CSE_CLAP_BUNDLE}/Contents/MacOS"
@@ -145,6 +148,25 @@ add_custom_command(TARGET common_sense_eq_clap POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy
           "${CMAKE_SOURCE_DIR}/packaging/macos/Info.plist"
           "${CSE_CLAP_BUNDLE}/Contents/Info.plist")
+
+# Make the bundle independent of Homebrew: copy cairo and its non-system
+# dependencies into Contents/Frameworks and rewrite the load commands.  Both
+# steps invalidate the linker's ad-hoc signature, so re-sign afterwards or
+# arm64 refuses to load the plugin.
+if(DYLIBBUNDLER)
+  add_custom_command(TARGET common_sense_eq_clap POST_BUILD
+    COMMAND "${DYLIBBUNDLER}" -od -b
+            -x "${CSE_CLAP_BUNDLE}/Contents/MacOS/CommonSenseEQ"
+            -d "${CSE_CLAP_BUNDLE}/Contents/Frameworks"
+            -p "@executable_path/../Frameworks")
+  if(CODESIGN)
+    add_custom_command(TARGET common_sense_eq_clap POST_BUILD
+      COMMAND /usr/bin/find "${CSE_CLAP_BUNDLE}/Contents/Frameworks"
+              -name "*.dylib" -exec "${CODESIGN}" --force --sign - {} ";"
+      COMMAND "${CODESIGN}" --force --sign - "${CSE_CLAP_BUNDLE}")
+  endif()
+endif()
+
 add_custom_target(common_sense_eq_clap_bundle ALL
   DEPENDS common_sense_eq_clap)
 elseif(CSE_X11)
