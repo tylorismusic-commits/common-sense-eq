@@ -140,6 +140,9 @@ find_program(DYLIBBUNDLER dylibbundler)
 find_program(CODESIGN codesign)
 
 add_custom_command(TARGET common_sense_eq_clap POST_BUILD
+  # Start from a clean bundle: reusing one leaves a stale _CodeSignature from
+  # the previous build, and macOS then rejects the replaced executable.
+  COMMAND ${CMAKE_COMMAND} -E remove_directory "${CSE_CLAP_BUNDLE}"
   COMMAND ${CMAKE_COMMAND} -E make_directory
           "${CSE_CLAP_BUNDLE}/Contents/MacOS"
   COMMAND ${CMAKE_COMMAND} -E copy

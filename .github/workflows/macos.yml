@@ -66,5 +66,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: CommonSenseEQ-macos-clap
-          path: build-macos/clap/CommonSenseEQ.clap
+          path: build-macos/clap
           if-no-files-found: warn
