@@ -210,16 +210,18 @@ set_target_properties(common_sense_eq_auv2 PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/au")
 
 # The wrapper generates Contents/Info.plist with its AudioComponents entry at
-# build time and copies it PRE_BUILD.  With the Makefile generator CMake then
-# writes its own default bundle plist, which has no AudioComponents, so on a
-# rebuild the component stops registering (auval: "didn't find the
-# component").  Copy the generated plist again POST_BUILD; the signing target
-# that depends on this one runs afterwards.
-add_custom_command(TARGET common_sense_eq_auv2 POST_BUILD
+# build time and copies it PRE_BUILD, but CMake writes its own default bundle
+# plist when the wrapper links -- and only then.  A build where the CLAP
+# changed but the wrapper did not relink kept whatever plist happened to be
+# there, which is how a component ends up registered nowhere.  An always-run
+# target installs the generated plist after every build; the signing targets
+# depend on it, so the signature covers it.
+add_custom_target(common_sense_eq_auv2_plist ALL
   COMMAND ${CMAKE_COMMAND} -E copy
           "${CMAKE_BINARY_DIR}/common_sense_eq_auv2-build-helper-output/auv2_Info.plist"
           "$<TARGET_BUNDLE_DIR:common_sense_eq_auv2>/Contents/Info.plist"
-  COMMENT "Installing the generated AUv2 Info.plist")
+  COMMENT "Installing the generated AUv2 Info.plist"
+  DEPENDS common_sense_eq_auv2)
 
 # Embedding the CLAP happens PRE_BUILD, which invalidates any signature the
 # wrapper had, so re-sign the finished bundle.  The signing targets always
@@ -236,6 +238,7 @@ if(CODESIGN)
     COMMENT "Ad-hoc signing ${CSE_AUV2_BUNDLE}"
     DEPENDS common_sense_eq_auv2
     VERBATIM)
+  add_dependencies(common_sense_eq_auv2_sign common_sense_eq_auv2_plist)
 endif()
 elseif(CSE_X11)
 add_library(common_sense_eq_clap MODULE src/clap/common_sense_eq_clap.cpp)

@@ -72,6 +72,9 @@ jobs:
             test -f "$bundle/Contents/PlugIns/CommonSenseEQ.clap/Contents/MacOS/CommonSenseEQ"
             codesign --verify --deep --verbose=2 "$bundle"
           done
+          # Without this entry macOS never registers the component.
+          plutil -p build-macos/au/CommonSenseEQ.component/Contents/Info.plist \
+            | grep -q AudioComponents
 
       - name: Validate AUv2 with auval
         run: |
