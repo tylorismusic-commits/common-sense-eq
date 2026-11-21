@@ -78,7 +78,7 @@ public:
                    const Setter& set);
   void pointerUp(UiState& state);
   bool wheel(UiState& state, double x, double y, double delta, bool fine,
-             const Setter& set);
+             bool ctrl, const Setter& set);
   bool doubleClick(UiState& state, double x, double y, const Setter& set);
   bool rightClick(UiState& state, double x, double y);
   bool key(UiState& state, int key, const char* text, const Setter& set);

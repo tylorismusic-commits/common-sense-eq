@@ -1405,10 +1405,8 @@ void Panel::drawFooter(cairo_t* cr, UiState& state) {
   textAt(cr, "Dynamics", 552.0, y + 20.0, 9.0, true,
          state.showDyn ? kAccent : kMuted, kCenter);
 
-  const bool on = state.values[PORT_ENABLE] > 0.5f;
-  textAt(cr, on ? "ACTIVE" : "BYPASSED", 64.0, kFooterY + 52.0, 7.5, true,
-         on ? kAccent : kDim);
-
+  // The power button in the top bar already shows active/bypassed; a second
+  // label down here just looked stranded under the analyzer chip.
   // Output gain.
   const double gx = 940.0;
   chip(cr, gx, y - 2.0, 132.0, 34.0, false);
@@ -1667,11 +1665,14 @@ bool Panel::pointerDown(UiState& state, double x, double y, bool fine,
       state.deletePresetConfirm = false;
       return true;
     }
-    double cy = kPopY + 6 - state.presetScroll * kPopRow;
+    const double listTop = kPopY + 6.0;
+    const double listBottom = listTop + kPopVisible * kPopRow;
+    double cy = listTop - state.presetScroll * kPopRow;
     for (int i : presetOrder(state)) {
       const bool newCategory = i == 0 || (i == kPresetCount);
       if (newCategory) cy += kPopRow;
-      if (y >= cy && y < cy + kPopRow) {
+      if (cy + kPopRow > listTop && cy < listBottom && y >= cy &&
+          y < cy + kPopRow) {
         applyPreset(state, i, set);
         state.presetOpen = false;
         return true;
@@ -1765,7 +1766,16 @@ bool Panel::pointerDown(UiState& state, double x, double y, bool fine,
       state.presetOverwriteConfirm = false;
       if (state.presetOpen) {
         rescanUserPresets(state);
-        state.presetScroll = 0;
+        // Open with the selected preset in view instead of always at the top:
+        // the factory bank is long enough that a user preset sits off-screen.
+        const int rows = static_cast<int>(presetOrder(state).size()) + 2;
+        const int visible = static_cast<int>(kPopVisible);
+        int row = 0;
+        if (state.presetIndex >= 0) {
+          row = 1 + state.presetIndex +
+                (state.presetIndex >= kPresetCount ? 1 : 0);
+        }
+        state.presetScroll = std::max(0, std::min(rows - visible, row - visible + 1));
       }
       return true;
     }
@@ -1983,8 +1993,7 @@ void Panel::pointerUp(UiState& state) {
 }
 
 bool Panel::wheel(UiState& state, double x, double y, double delta, bool fine,
-                  const Setter& set) {
-  (void)set;
+                  bool ctrl, const Setter& set) {
   if (state.presetOpen) {
     if (state.savePreset || state.renamePreset) return true;
     const int rows = static_cast<int>(presetOrder(state).size()) + 2;
@@ -2012,6 +2021,29 @@ bool Panel::wheel(UiState& state, double x, double y, double delta, bool fine,
         return true;
       }
       return false;
+    }
+  }
+
+  // Logic-style Ctrl+wheel: adjust a band's gain without grabbing its handle.
+  // The band under the cursor wins (and becomes selected); otherwise the
+  // selected band is used, so the gesture works from anywhere in the window.
+  // Shift still means fine.
+  if (ctrl) {
+    int band = state.selectedBand;
+    const IconHit hit = iconAt(x, y);
+    if (hit.band >= 0) {
+      band = hit.band;
+    } else {
+      const CellHit cellHit = cellAt(x, y);
+      if (cellHit.band >= 0) band = cellHit.band;
+    }
+    if (band >= 0 && bandHasGain(band)) {
+      selectBand(state, band);
+      const uint32_t port = bandParam(band, kSlotGain);
+      const double step = fine ? 0.1 : 0.5;
+      setValue(state, port,
+               static_cast<float>(state.values[port] + delta * step), set);
+      return true;
     }
   }
 

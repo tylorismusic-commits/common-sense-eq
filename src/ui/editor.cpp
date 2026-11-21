@@ -212,10 +212,11 @@ void onButtonPress(X11UI* ui, XButtonEvent& ev) {
   double y = 0.0;
   toLogical(ui, ev.x, ev.y, x, y);
   const bool fine = (ev.state & ShiftMask) != 0;
+  const bool ctrl = (ev.state & ControlMask) != 0;
 
   if (ev.button == Button4 || ev.button == Button5) {
     const double delta = ev.button == Button4 ? 1.0 : -1.0;
-    if (ui->panel.wheel(ui->state, x, y, delta, fine,
+    if (ui->panel.wheel(ui->state, x, y, delta, fine, ctrl,
                         [ui](uint32_t port, float value) {
                           sendValue(ui, port, value);
                         })) {

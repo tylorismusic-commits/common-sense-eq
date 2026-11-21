@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.3
+
+- Ctrl + wheel adjusts a band's gain without grabbing its handle, like the
+  Logic EQ.  The band under the cursor is selected and adjusted; with the
+  cursor elsewhere in the window the currently selected band is used.  Shift
+  still switches the step to fine (0.1 dB instead of 0.5 dB).
+
 ## 0.1.2
 
 - User preset bank with save, rename, duplicate, delete, export and drag-drop
