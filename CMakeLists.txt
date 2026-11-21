@@ -201,6 +201,11 @@ target_add_auv2_wrapper(TARGET common_sense_eq_auv2
   MACOS_EMBEDDED_CLAP_LOCATION "${CSE_CLAP_BUNDLE}")
 # target_add_auv2_wrapper has no ASSET_OUTPUT_DIRECTORY knob; put the
 # .component next to the .vst3 all the same.
+# The AUv2 build helper loads the CLAP bundle to read its metadata, and
+# clap-wrapper only orders it after the CLAP library -- not after our bundle
+# target, whose POST_BUILD runs dylibbundler over the same bundle.  Without
+# this the helper can dlopen a bundle that is being rewritten (SIGSEGV).
+add_dependencies(common_sense_eq_auv2-build-helper common_sense_eq_clap_bundle)
 set_target_properties(common_sense_eq_auv2 PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/au")
 
