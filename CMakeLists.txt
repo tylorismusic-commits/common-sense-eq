@@ -204,6 +204,18 @@ target_add_auv2_wrapper(TARGET common_sense_eq_auv2
 set_target_properties(common_sense_eq_auv2 PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/au")
 
+# The wrapper generates Contents/Info.plist with its AudioComponents entry at
+# build time and copies it PRE_BUILD.  With the Makefile generator CMake then
+# writes its own default bundle plist, which has no AudioComponents, so on a
+# rebuild the component stops registering (auval: "didn't find the
+# component").  Copy the generated plist again POST_BUILD; the signing target
+# that depends on this one runs afterwards.
+add_custom_command(TARGET common_sense_eq_auv2 POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy
+          "${CMAKE_BINARY_DIR}/common_sense_eq_auv2-build-helper-output/auv2_Info.plist"
+          "$<TARGET_BUNDLE_DIR:common_sense_eq_auv2>/Contents/Info.plist"
+  COMMENT "Installing the generated AUv2 Info.plist")
+
 # Embedding the CLAP happens PRE_BUILD, which invalidates any signature the
 # wrapper had, so re-sign the finished bundle.  The signing targets always
 # run: the embedded CLAP is recopied on every build, and a POST_BUILD hook
