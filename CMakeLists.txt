@@ -114,6 +114,7 @@ target_link_libraries(common_sense_eq_inline_preview PRIVATE PkgConfig::CAIRO)
 # ---------------------------------------------------------------------------
 if(APPLE)
 # macOS: the same CLAP, with the panel hosted in a Cocoa NSView.
+enable_language(OBJC)
 enable_language(OBJCXX)
 add_library(common_sense_eq_clap MODULE
   src/clap/common_sense_eq_clap.cpp
@@ -163,6 +164,61 @@ if(DYLIBBUNDLER)
             -x "${CSE_CLAP_BUNDLE}/Contents/MacOS/CommonSenseEQ"
             -d "${CSE_CLAP_BUNDLE}/Contents/Frameworks"
             -p "@loader_path/../Frameworks")
+endif()
+
+# ---------------------------------------------------------------------------
+# VST3 and AUv2 projections of the same CLAP (clap-wrapper)
+#
+# Both wrappers load the .clap we just built from their own
+# Contents/PlugIns, so the bundles stay self-contained: no copy of the
+# plug-in has to be installed for the wrapper to work.
+# ---------------------------------------------------------------------------
+set(CLAP_WRAPPER_DOWNLOAD_DEPENDENCIES ON)
+add_subdirectory(third_party/clap-wrapper EXCLUDE_FROM_ALL)
+
+set(CSE_VST3_BUNDLE "${CMAKE_BINARY_DIR}/vst3/CommonSenseEQ.vst3")
+set(CSE_AUV2_BUNDLE "${CMAKE_BINARY_DIR}/au/CommonSenseEQ.component")
+
+add_library(common_sense_eq_vst3 MODULE)
+add_dependencies(common_sense_eq_vst3 common_sense_eq_clap_bundle)
+target_add_vst3_wrapper(TARGET common_sense_eq_vst3
+  OUTPUT_NAME "CommonSenseEQ"
+  BUNDLE_IDENTIFIER "com.tylorismusic.commonsense"
+  BUNDLE_VERSION "0.1.3"
+  ASSET_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/vst3"
+  MACOS_EMBEDDED_CLAP_LOCATION "${CSE_CLAP_BUNDLE}")
+
+add_library(common_sense_eq_auv2 MODULE)
+add_dependencies(common_sense_eq_auv2 common_sense_eq_clap_bundle)
+target_add_auv2_wrapper(TARGET common_sense_eq_auv2
+  OUTPUT_NAME "CommonSenseEQ"
+  BUNDLE_IDENTIFIER "com.tylorismusic.commonsense"
+  BUNDLE_VERSION "0.1.3"
+  MANUFACTURER_NAME "tylorismusic"
+  MANUFACTURER_CODE "Tylr"
+  SUBTYPE_CODE "CsEQ"
+  INSTRUMENT_TYPE "aufx"
+  MACOS_EMBEDDED_CLAP_LOCATION "${CSE_CLAP_BUNDLE}")
+# target_add_auv2_wrapper has no ASSET_OUTPUT_DIRECTORY knob; put the
+# .component next to the .vst3 all the same.
+set_target_properties(common_sense_eq_auv2 PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/au")
+
+# Embedding the CLAP happens PRE_BUILD, which invalidates any signature the
+# wrapper had, so re-sign the finished bundle.  The signing targets always
+# run: the embedded CLAP is recopied on every build, and a POST_BUILD hook
+# would only fire when the wrapper itself relinked.
+if(CODESIGN)
+  add_custom_target(common_sense_eq_vst3_sign ALL
+    COMMAND "${CODESIGN}" --force --deep --sign - "${CSE_VST3_BUNDLE}"
+    COMMENT "Ad-hoc signing ${CSE_VST3_BUNDLE}"
+    DEPENDS common_sense_eq_vst3
+    VERBATIM)
+  add_custom_target(common_sense_eq_auv2_sign ALL
+    COMMAND "${CODESIGN}" --force --deep --sign - "${CSE_AUV2_BUNDLE}"
+    COMMENT "Ad-hoc signing ${CSE_AUV2_BUNDLE}"
+    DEPENDS common_sense_eq_auv2
+    VERBATIM)
 endif()
 elseif(CSE_X11)
 add_library(common_sense_eq_clap MODULE src/clap/common_sense_eq_clap.cpp)
