@@ -139,9 +139,9 @@ set(CSE_CLAP_BUNDLE "${CMAKE_BINARY_DIR}/clap/CommonSenseEQ.clap")
 find_program(DYLIBBUNDLER dylibbundler)
 find_program(CODESIGN codesign)
 
-add_custom_command(TARGET common_sense_eq_clap POST_BUILD
-  # Start from a clean bundle: reusing one leaves a stale _CodeSignature from
-  # the previous build, and macOS then rejects the replaced executable.
+# A custom target, not POST_BUILD: deleting the bundle and rebuilding must
+# recreate it, and POST_BUILD only runs when the library itself relinks.
+add_custom_target(common_sense_eq_clap_bundle ALL
   COMMAND ${CMAKE_COMMAND} -E remove_directory "${CSE_CLAP_BUNDLE}"
   COMMAND ${CMAKE_COMMAND} -E make_directory
           "${CSE_CLAP_BUNDLE}/Contents/MacOS"
@@ -150,25 +150,20 @@ add_custom_command(TARGET common_sense_eq_clap POST_BUILD
           "${CSE_CLAP_BUNDLE}/Contents/MacOS/CommonSenseEQ"
   COMMAND ${CMAKE_COMMAND} -E copy
           "${CMAKE_SOURCE_DIR}/packaging/macos/Info.plist"
-          "${CSE_CLAP_BUNDLE}/Contents/Info.plist")
+          "${CSE_CLAP_BUNDLE}/Contents/Info.plist"
+  DEPENDS common_sense_eq_clap)
 
 # Make the bundle independent of Homebrew: copy cairo and its non-system
-# dependencies into Contents/Frameworks and rewrite the load commands.  Both
-# steps invalidate the linker's ad-hoc signature, so re-sign afterwards or
-# arm64 refuses to load the plugin.
+# dependencies into Contents/Frameworks and rewrite the load commands with
+# @loader_path (a plug-in's @executable_path is the host application).  Both
+# steps invalidate the signature, so dylibbundler re-signs as it goes.
 if(DYLIBBUNDLER)
-  add_custom_command(TARGET common_sense_eq_clap POST_BUILD
+  add_custom_command(TARGET common_sense_eq_clap_bundle POST_BUILD
     COMMAND "${DYLIBBUNDLER}" -od -b
             -x "${CSE_CLAP_BUNDLE}/Contents/MacOS/CommonSenseEQ"
             -d "${CSE_CLAP_BUNDLE}/Contents/Frameworks"
             -p "@loader_path/../Frameworks")
-  # dylibbundler re-signs every library it rewrites and the executable, so no
-  # extra codesign pass is needed (the find -exec form also trips CMake's
-  # argument handling).
 endif()
-
-add_custom_target(common_sense_eq_clap_bundle ALL
-  DEPENDS common_sense_eq_clap)
 elseif(CSE_X11)
 add_library(common_sense_eq_clap MODULE src/clap/common_sense_eq_clap.cpp)
 cse_common(common_sense_eq_clap)
