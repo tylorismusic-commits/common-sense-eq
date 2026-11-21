@@ -435,7 +435,17 @@ public:
       const clap_audio_buffer_t& out = process->audio_outputs[0];
       if (out.data32 && out.channel_count > 0) {
         outL = out.data32[0];
-        outR = out.channel_count > 1 ? out.data32[1] : out.data32[0];
+        if (out.channel_count > 1 && out.data32[1]) {
+          outR = out.data32[1];
+        } else {
+          // Mono host: process a duplicate of the channel and discard it, so
+          // the strip sees a proper stereo pair instead of aliasing both
+          // sides onto one buffer.
+          if (s->monoRight.size() < n) {
+            s->monoRight.resize(n);
+          }
+          outR = s->monoRight.data();
+        }
       }
     }
     const clap_audio_buffer_t* in = nullptr;
@@ -1246,6 +1256,10 @@ public:
   Strip strip;
 
   std::atomic<uint32_t> channels_{2};  // 1 or 2, set while inactive
+  // Second channel for a mono host: the strip processes L/R as independent
+  // channels, so handing it the same buffer twice would run every filter and
+  // every gain stage twice over the same samples.
+  std::vector<float> monoRight;
   std::atomic<uint32_t> seq{0};
   InlineSnapshot snapshot;
 
