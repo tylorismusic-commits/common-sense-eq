@@ -310,8 +310,9 @@ jobs:
           x86=slices/CommonSenseEQ-macos-x86_64
 
           for tree in clap vst3 au; do
-            [ -d "$arm-$tree/$tree" ] || continue
-            cp -R "$arm-$tree/$tree" "universal/$tree"
+            [ -d "$arm-$tree" ] || continue
+            mkdir -p "universal/$tree"
+            cp -R "$arm-$tree/." "universal/$tree"
 
             # Every Mach-O that exists on both sides becomes universal.  A file
             # only one slice has is kept as it is: each slice's load commands
@@ -319,7 +320,7 @@ jobs:
             # version that differs between the two runners.
             while IFS= read -r -d '' f; do
               rel="${f#universal/$tree/}"
-              b="$x86-$tree/$tree/$rel"
+              b="$x86-$tree/$rel"
               [ -f "$b" ] || continue
               file -b "$f" | grep -q "Mach-O" || continue
               file -b "$b" | grep -q "Mach-O" || continue
@@ -328,11 +329,11 @@ jobs:
             done < <(find "universal/$tree" -type f -print0)
 
             while IFS= read -r -d '' b; do
-              rel="${b#$x86-$tree/$tree/}"
+              rel="${b#$x86-$tree/}"
               [ -e "universal/$tree/$rel" ] && continue
               mkdir -p "$(dirname "universal/$tree/$rel")"
               cp "$b" "universal/$tree/$rel"
-            done < <(find "$x86-$tree/$tree" -type f -print0)
+            done < <(find "$x86-$tree" -type f -print0)
           done
 
           # Both slices must be present in the binaries a host loads.
