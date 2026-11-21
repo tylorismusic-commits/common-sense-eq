@@ -126,7 +126,7 @@ target_include_directories(common_sense_eq_clap PRIVATE
   "${CMAKE_SOURCE_DIR}/third_party/clap/include"
   ${CAIRO_INCLUDE_DIRS})
 target_link_libraries(common_sense_eq_clap PRIVATE
-  PkgConfig::CAIRO PkgConfig::FREETYPE
+  PkgConfig::CAIRO
   "-framework Cocoa" "-framework CoreGraphics" "-framework QuartzCore"
   Threads::Threads)
 set_target_properties(common_sense_eq_clap PROPERTIES
