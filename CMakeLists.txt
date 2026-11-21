@@ -159,12 +159,9 @@ if(DYLIBBUNDLER)
             -x "${CSE_CLAP_BUNDLE}/Contents/MacOS/CommonSenseEQ"
             -d "${CSE_CLAP_BUNDLE}/Contents/Frameworks"
             -p "@executable_path/../Frameworks")
-  if(CODESIGN)
-    add_custom_command(TARGET common_sense_eq_clap POST_BUILD
-      COMMAND /usr/bin/find "${CSE_CLAP_BUNDLE}/Contents/Frameworks"
-              -name "*.dylib" -exec "${CODESIGN}" --force --sign - {} ";"
-      COMMAND "${CODESIGN}" --force --sign - "${CSE_CLAP_BUNDLE}")
-  endif()
+  # dylibbundler re-signs every library it rewrites and the executable, so no
+  # extra codesign pass is needed (the find -exec form also trips CMake's
+  # argument handling).
 endif()
 
 add_custom_target(common_sense_eq_clap_bundle ALL
