@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include <cairo/cairo.h>
+#include <cairo.h>
 
 #import <Cocoa/Cocoa.h>
 
