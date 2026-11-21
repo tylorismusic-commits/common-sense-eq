@@ -19,6 +19,7 @@
 #include <vector>
 
 #include <clap/all.h>
+#include <clap/ext/configurable-audio-ports.h>
 
 #ifndef CSE_MACOS_COCOA
 #include <lv2/ui/ui.h>
@@ -559,17 +560,20 @@ public:
     return 1;
   }
 
-  static bool CLAP_ABI audioPortInfo(const clap_plugin_t*, uint32_t index,
+  static bool CLAP_ABI audioPortInfo(const clap_plugin_t* p, uint32_t index,
                                      bool isInput,
                                      clap_audio_port_info_t* info) {
     if (!info || index != 0) {
       return false;
     }
+    ClapPlugin* s = self(const_cast<clap_plugin_t*>(p));
+    const uint32_t channels =
+        s ? s->channels_.load(std::memory_order_relaxed) : 2u;
     std::memset(info, 0, sizeof(*info));
     info->id = isInput ? 0 : 1;
     info->flags = CLAP_AUDIO_PORT_IS_MAIN;
-    info->channel_count = 2;
-    info->port_type = CLAP_PORT_STEREO;
+    info->channel_count = channels;
+    info->port_type = channels == 1 ? CLAP_PORT_MONO : CLAP_PORT_STEREO;
     info->in_place_pair = isInput ? 1 : CLAP_INVALID_ID;
     std::snprintf(info->name, sizeof(info->name), "%s",
                   isInput ? "Input" : "Output");
@@ -579,6 +583,47 @@ public:
   static const clap_plugin_audio_ports_t& audioPortsExt() {
     static const clap_plugin_audio_ports_t ext = {&audioPortCount,
                                                    &audioPortInfo};
+    return ext;
+  }
+
+  // Mono and stereo main busses.  Hosts that only look at the port layout
+  // (Logic's AU insert list) hide a stereo-only effect on mono tracks; with
+  // this extension clap-wrapper can advertise both layouts and Logic offers
+  // the AU everywhere.
+  static bool CLAP_ABI configurablePortsCanApply(
+      const clap_plugin_t* p,
+      const clap_audio_port_configuration_request_t* requests,
+      uint32_t count) {
+    if (!self(const_cast<clap_plugin_t*>(p)) || !requests || count == 0) {
+      return false;
+    }
+    uint32_t in = 0, out = 0;
+    for (uint32_t i = 0; i < count; ++i) {
+      const auto& r = requests[i];
+      if (r.port_index != 0 || (r.channel_count != 1 && r.channel_count != 2)) {
+        return false;
+      }
+      (r.is_input ? in : out) = r.channel_count;
+    }
+    return in == out;
+  }
+
+  static bool CLAP_ABI configurablePortsApply(
+      const clap_plugin_t* p,
+      const clap_audio_port_configuration_request_t* requests,
+      uint32_t count) {
+    if (!configurablePortsCanApply(p, requests, count)) {
+      return false;
+    }
+    ClapPlugin* s = self(const_cast<clap_plugin_t*>(p));
+    s->channels_.store(requests[0].channel_count, std::memory_order_relaxed);
+    return true;
+  }
+
+  static const clap_plugin_configurable_audio_ports_t&
+  configurablePortsExt() {
+    static const clap_plugin_configurable_audio_ports_t ext = {
+        &configurablePortsCanApply, &configurablePortsApply};
     return ext;
   }
 
@@ -1175,6 +1220,9 @@ public:
     if (!std::strcmp(id, CLAP_EXT_STATE)) {
       return &stateExt();
     }
+    if (!std::strcmp(id, CLAP_EXT_CONFIGURABLE_AUDIO_PORTS)) {
+      return &configurablePortsExt();
+    }
     if (!std::strcmp(id, CLAP_EXT_GUI)) {
       return &guiExt();
     }
@@ -1197,6 +1245,7 @@ public:
   Params params;
   Strip strip;
 
+  std::atomic<uint32_t> channels_{2};  // 1 or 2, set while inactive
   std::atomic<uint32_t> seq{0};
   InlineSnapshot snapshot;
 
