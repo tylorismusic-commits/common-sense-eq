@@ -112,7 +112,42 @@ target_link_libraries(common_sense_eq_inline_preview PRIVATE PkgConfig::CAIRO)
 # ---------------------------------------------------------------------------
 # CLAP build
 # ---------------------------------------------------------------------------
-if(CSE_X11)
+if(APPLE)
+# macOS: the same CLAP, with the panel hosted in a Cocoa NSView.
+enable_language(OBJCXX)
+add_library(common_sense_eq_clap MODULE
+  src/clap/common_sense_eq_clap.cpp
+  src/ui/panel.cpp
+  src/ui/cocoa_view.mm)
+cse_common(common_sense_eq_clap)
+target_compile_definitions(common_sense_eq_clap PRIVATE CSE_MACOS_COCOA=1)
+target_compile_options(common_sense_eq_clap PRIVATE -fobjc-arc)
+target_include_directories(common_sense_eq_clap PRIVATE
+  "${CMAKE_SOURCE_DIR}/third_party/clap/include"
+  ${CAIRO_INCLUDE_DIRS})
+target_link_libraries(common_sense_eq_clap PRIVATE
+  PkgConfig::CAIRO PkgConfig::FREETYPE
+  "-framework Cocoa" "-framework CoreGraphics" "-framework QuartzCore"
+  Threads::Threads)
+set_target_properties(common_sense_eq_clap PROPERTIES
+  PREFIX ""
+  OUTPUT_NAME "CommonSenseEQ"
+  SUFFIX ".dylib"
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/macos")
+
+set(CSE_CLAP_BUNDLE "${CMAKE_BINARY_DIR}/clap/CommonSenseEQ.clap")
+add_custom_command(TARGET common_sense_eq_clap POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E make_directory
+          "${CSE_CLAP_BUNDLE}/Contents/MacOS"
+  COMMAND ${CMAKE_COMMAND} -E copy
+          "$<TARGET_FILE:common_sense_eq_clap>"
+          "${CSE_CLAP_BUNDLE}/Contents/MacOS/CommonSenseEQ"
+  COMMAND ${CMAKE_COMMAND} -E copy
+          "${CMAKE_SOURCE_DIR}/packaging/macos/Info.plist"
+          "${CSE_CLAP_BUNDLE}/Contents/Info.plist")
+add_custom_target(common_sense_eq_clap_bundle ALL
+  DEPENDS common_sense_eq_clap)
+elseif(CSE_X11)
 add_library(common_sense_eq_clap MODULE src/clap/common_sense_eq_clap.cpp)
 cse_common(common_sense_eq_clap)
 target_include_directories(common_sense_eq_clap PRIVATE
@@ -143,6 +178,11 @@ install(FILES lv2/manifest.ttl lv2/common-sense-eq.ttl
 if(CSE_X11)
   install(TARGETS common_sense_eq_ui
     LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/lv2/common-sense-eq.lv2")
+endif()
+if(APPLE)
+  install(DIRECTORY "${CMAKE_BINARY_DIR}/clap/CommonSenseEQ.clap"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/clap")
+elseif(CSE_X11)
   install(TARGETS common_sense_eq_clap
     LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/clap")
   install(DIRECTORY "${CMAKE_BINARY_DIR}/clap/CommonSenseEQ.resources"

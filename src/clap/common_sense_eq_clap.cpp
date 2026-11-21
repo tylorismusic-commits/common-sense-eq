@@ -19,7 +19,14 @@
 #include <vector>
 
 #include <clap/all.h>
+
+#ifndef CSE_MACOS_COCOA
 #include <lv2/ui/ui.h>
+#else
+#include <memory>
+
+#include "ui/cocoa_view.hpp"
+#endif
 
 #include "clap/reaper_embed.hpp"
 #include "cse/param_info.hpp"
@@ -32,8 +39,10 @@ namespace clapwrap {
 
 static constexpr const char* kPluginId = "com.tylorismusic.commonsense";
 static constexpr const char* kPluginName = "Common Sense EQ";
+#ifndef CSE_MACOS_COCOA
 static constexpr const char* kUiUri =
     "https://github.com/tylorismusic-commits/common-sense-eq#ui";
+#endif
 static constexpr uint32_t kUiWidth = ui::kWidth;
 static constexpr uint32_t kUiHeight = ui::kHeight;
 
@@ -657,6 +666,42 @@ public:
     return ext;
   }
 
+#ifdef CSE_MACOS_COCOA
+  // -------------------------------------------------------------------------
+  // macOS editor (Cocoa NSView around the same cairo Panel)
+  // -------------------------------------------------------------------------
+  void syncInto(ui::UiState& state) {
+    for (uint32_t i = 0; i < PORT_COUNT; ++i) {
+      state.values[i] = values[i].load(std::memory_order_relaxed);
+    }
+    for (uint32_t i = 0; i < kSpectrumCount; ++i) {
+      state.spectrum[i] = spectrum[i].load(std::memory_order_relaxed);
+    }
+    for (uint32_t i = 0; i < kGrCount; ++i) {
+      state.dyn[i] = dynDb[i].load(std::memory_order_relaxed);
+    }
+  }
+
+  bool createUi(void* parentView) {
+    if (!cocoaView) {
+      ui::initState(uiState);
+      syncInto(uiState);
+      cocoaView = std::make_unique<ui::CocoaView>();
+      cocoaView->setContent(
+          &uiPanel, &uiState,
+          [this](uint32_t port, float value) { setParam(port, value); },
+          [this](ui::UiState& state) { syncInto(state); });
+    }
+    if (parentView) {
+      cocoaView->attach(parentView);
+    }
+    return true;
+  }
+
+  void destroyUi() { cocoaView.reset(); }
+  void startUiThread() {}
+  void stopUiThread() {}
+#else
   // -------------------------------------------------------------------------
   // Editor (LV2 X11 UI module)
   // -------------------------------------------------------------------------
@@ -801,14 +846,24 @@ public:
     uiThread = std::thread(&ClapPlugin::uiThreadLoop, this);
   }
 
+#endif
+
   static bool CLAP_ABI guiIsApiSupported(const clap_plugin_t*, const char* api,
                                          bool) {
+#ifdef CSE_MACOS_COCOA
+    return api && !std::strcmp(api, CLAP_WINDOW_API_COCOA);
+#else
     return api && !std::strcmp(api, CLAP_WINDOW_API_X11);
+#endif
   }
 
   static bool CLAP_ABI guiGetPreferredApi(const clap_plugin_t*, const char** api,
                                           bool* floating) {
+#ifdef CSE_MACOS_COCOA
+    if (api) *api = CLAP_WINDOW_API_COCOA;
+#else
     if (api) *api = CLAP_WINDOW_API_X11;
+#endif
     if (floating) *floating = false;
     return true;
   }
@@ -819,7 +874,12 @@ public:
       return false;
     }
     s->floating = floating;
+#ifdef CSE_MACOS_COCOA
+    (void)floating;
+    return true;
+#else
     return floating ? s->createUi(0) : true;
+#endif
   }
 
   static void CLAP_ABI guiDestroy(const clap_plugin_t* p) {
@@ -876,22 +936,37 @@ public:
     }
     s->uiWidth = width;
     s->uiHeight = height;
+#ifdef CSE_MACOS_COCOA
+    if (s->cocoaView) {
+      s->cocoaView->resize(static_cast<int>(width), static_cast<int>(height));
+    }
+#else
     std::lock_guard<std::mutex> lock(s->uiMutex);
     if (s->ui && s->uiResize && s->uiResize->ui_resize) {
       s->uiResize->ui_resize(s->ui, static_cast<int>(width),
                              static_cast<int>(height));
     }
+#endif
     return true;
   }
 
   static bool CLAP_ABI guiSetParent(const clap_plugin_t* p,
                                     const clap_window_t* window) {
     ClapPlugin* s = self(p);
-    if (!s || !window || !window->api ||
-        std::strcmp(window->api, CLAP_WINDOW_API_X11)) {
+    if (!s || !window || !window->api) {
+      return false;
+    }
+#ifdef CSE_MACOS_COCOA
+    if (std::strcmp(window->api, CLAP_WINDOW_API_COCOA)) {
+      return false;
+    }
+    return s->createUi(window->cocoa);
+#else
+    if (std::strcmp(window->api, CLAP_WINDOW_API_X11)) {
       return false;
     }
     return s->createUi(static_cast<uintptr_t>(window->x11));
+#endif
   }
 
   static bool CLAP_ABI guiSetTransient(const clap_plugin_t*, const clap_window_t*) {
@@ -905,11 +980,18 @@ public:
     if (!s) {
       return false;
     }
+#ifdef CSE_MACOS_COCOA
+    if (!s->cocoaView) {
+      return false;
+    }
+    return true;
+#else
     if (!s->ui && !s->createUi(0)) {
       return false;
     }
     s->startUiThread();
     return true;
+#endif
   }
 
   static bool CLAP_ABI guiHide(const clap_plugin_t* p) {
@@ -1118,6 +1200,11 @@ public:
   std::atomic<uint32_t> seq{0};
   InlineSnapshot snapshot;
 
+#ifdef CSE_MACOS_COCOA
+  ui::UiState uiState{};
+  ui::Panel uiPanel;
+  std::unique_ptr<ui::CocoaView> cocoaView;
+#else
   void* uiLib = nullptr;
   const LV2UI_Descriptor* uiDesc = nullptr;
   LV2UI_Handle ui = nullptr;
@@ -1126,6 +1213,7 @@ public:
   std::thread uiThread;
   std::atomic<bool> uiRunning{false};
   std::mutex uiMutex;
+#endif
   uint32_t uiWidth = kUiWidth;
   uint32_t uiHeight = kUiHeight;
   bool floating = false;

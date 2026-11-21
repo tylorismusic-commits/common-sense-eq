@@ -46,10 +46,23 @@ jobs:
       - name: Render panel (cairo only, no window system)
         run: ./build-macos/common_sense_eq_panel_preview build-macos/panel-preview.png
 
+      - name: Check the CLAP bundle
+        run: |
+          file build-macos/clap/CommonSenseEQ.clap/Contents/MacOS/CommonSenseEQ
+          otool -L build-macos/clap/CommonSenseEQ.clap/Contents/MacOS/CommonSenseEQ | head -12
+
       - name: Upload panel preview
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: macos-panel-preview
           path: build-macos/panel-preview.png
+          if-no-files-found: warn
+
+      - name: Upload CLAP
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CommonSenseEQ-macos-clap
+          path: build-macos/clap/CommonSenseEQ.clap
           if-no-files-found: warn
